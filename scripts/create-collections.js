@@ -132,8 +132,23 @@ async function createCollection(pb, collectionConfig, collectionIdMap) {
     // Check if collection already exists
     const existingId = await getCollectionId(pb, name);
     if (existingId) {
-      console.log(`   ⚠️  Collection "${name}" already exists. Skipping...`);
+      console.log(`   ⚠️  Collection "${name}" already exists. Updating permissions...`);
       collectionIdMap[name] = existingId;
+      
+      // Update permissions to ensure they match expected rules
+      try {
+        await pb.collections.update(existingId, {
+          listRule: rules.listRule,
+          viewRule: rules.viewRule,
+          createRule: rules.createRule,
+          updateRule: rules.updateRule,
+          deleteRule: rules.deleteRule,
+        });
+        console.log(`   ✅ Updated permissions for "${name}"`);
+      } catch (updateErr) {
+        console.log(`   ⚠️  Could not update permissions for "${name}": ${updateErr.message}`);
+      }
+      
       return { success: true, skipped: true, collectionId: existingId };
     }
 

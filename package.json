@@ -13,6 +13,7 @@
     "test:schema": "node scripts/verify-schema.js",
     "test:submission": "node scripts/test-submission.js",
     "setup:collections": "node scripts/create-collections.js",
+    "fix:permissions": "node scripts/fix-permissions.js",
     "seed:data": "node scripts/seed-data.js"
   },
   "dependencies": {
