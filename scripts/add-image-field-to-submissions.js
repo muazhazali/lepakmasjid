@@ -6,10 +6,17 @@
 const PocketBase = require('pocketbase/cjs');
 
 const PB_URL = process.env.PB_URL || 'http://127.0.0.1:8090';
-const PB_EMAIL = process.env.PB_EMAIL || 'admin@example.com';
-const PB_PASSWORD = process.env.PB_PASSWORD || 'changeme';
+const PB_EMAIL = process.env.PB_EMAIL;
+const PB_PASSWORD = process.env.PB_PASSWORD;
 
 async function addImageField() {
+  // Validate required environment variables
+  if (!PB_EMAIL || !PB_PASSWORD) {
+    console.error('❌ Error: PB_EMAIL and PB_PASSWORD environment variables are required');
+    console.error('   Please set them in your environment or .env file');
+    process.exit(1);
+  }
+
   const pb = new PocketBase(PB_URL);
 
   try {
