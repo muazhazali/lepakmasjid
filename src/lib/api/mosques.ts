@@ -275,31 +275,57 @@ export const mosquesApi = {
         })) as MosqueAmenity[];
       
       // Fetch activities
-      // Try with status filter first, fallback to client-side filtering if it fails
+      // Fetch all activities and filter client-side for reliability
       let activities: Activity[] = [];
       try {
-        const activitiesResult = await pb.collection('activities').getList(1, 100, {
-          filter: `mosque_id = "${id}" && status = "active"`,
-          sort: '-created',
-        });
-        activities = activitiesResult.items as unknown as Activity[];
-      } catch (activitiesError: any) {
-        // If filter fails, try without status filter and filter client-side
-        console.warn('Activities filter failed, trying without status filter:', activitiesError);
+        // Try with mosque_id filter and sort first
+        let activitiesResult;
+        let alreadyFilteredByMosque = false;
         try {
-          const activitiesResult = await pb.collection('activities').getList(1, 100, {
+          activitiesResult = await pb.collection('activities').getList(1, 100, {
             filter: `mosque_id = "${id}"`,
             sort: '-created',
           });
-          // Filter client-side to only show active activities
-          activities = (activitiesResult.items as unknown as Activity[]).filter(
-            (activity) => activity.status === 'active'
-          );
-        } catch (fallbackError: any) {
-          // If that also fails, just log and continue without activities
-          console.warn('Failed to fetch activities:', fallbackError);
-          activities = [];
+          alreadyFilteredByMosque = true;
+        } catch (filterError: any) {
+          // If filter fails, try without sort
+          try {
+            activitiesResult = await pb.collection('activities').getList(1, 100, {
+              filter: `mosque_id = "${id}"`,
+            });
+            alreadyFilteredByMosque = true;
+          } catch (noSortError: any) {
+            // If that also fails, fetch all and filter client-side
+            try {
+              activitiesResult = await pb.collection('activities').getList(1, 100, {
+                sort: '-created',
+              });
+            } catch (noFilterError: any) {
+              // Last resort: fetch all without any options
+              activitiesResult = await pb.collection('activities').getList(1, 100);
+            }
+          }
         }
+        
+        // Filter client-side
+        // If already filtered by mosque_id, use items as-is (only filter out cancelled if status exists)
+        // Otherwise, filter by both mosque_id and status
+        if (alreadyFilteredByMosque) {
+          // Only filter by status (mosque_id already filtered)
+          // Include all activities, only exclude if status is explicitly 'cancelled'
+          activities = (activitiesResult.items as unknown as Activity[]).filter(
+            (activity) => !activity.status || activity.status !== 'cancelled'
+          );
+        } else {
+          // Filter by both mosque_id and status
+          activities = (activitiesResult.items as unknown as Activity[]).filter(
+            (activity) => activity.mosque_id === id && (!activity.status || activity.status !== 'cancelled')
+          );
+        }
+      } catch (activitiesError: any) {
+        // If all attempts fail, just log and continue without activities
+        console.warn('Failed to fetch activities:', activitiesError);
+        activities = [];
       }
       
       return {
