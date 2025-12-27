@@ -1,5 +1,5 @@
 import { pb } from '../pocketbase';
-import type { Mosque, MosqueFilters, MosqueWithDetails } from '@/types';
+import type { Mosque, MosqueFilters, MosqueWithDetails, PaginatedResponse } from '@/types';
 import type { Amenity, MosqueAmenity, Activity } from '@/types';
 import { createFormDataWithImage, validateImageFile } from '../pocketbase-images';
 import { validateState, sanitizeSearchTerm } from '../validation';
@@ -131,8 +131,8 @@ async function attachAmenitiesToMosques(mosques: Mosque[]): Promise<Mosque[]> {
 }
 
 export const mosquesApi = {
-  // List mosques with filters
-  async list(filters?: MosqueFilters): Promise<Mosque[]> {
+  // List mosques with filters and pagination
+  async list(filters?: MosqueFilters): Promise<PaginatedResponse<Mosque>> {
     try {
       // Build filter parts (without status filter to avoid 400 errors)
       const filterParts: string[] = [];
@@ -176,8 +176,14 @@ export const mosquesApi = {
         }
       }
       
+      // Pagination parameters
+      const page = filters?.page || 1;
+      const perPage = filters?.perPage || 12;
+      
       // Fetch mosques from PocketBase (without status filter to avoid 400 errors)
-      const result = await pb.collection('mosques').getList(1, 50, queryOptions);
+      // We fetch more items than needed to account for client-side filtering
+      const fetchPerPage = Math.max(perPage * 2, 50); // Fetch more to account for filtering
+      const result = await pb.collection('mosques').getList(page, fetchPerPage, queryOptions);
       
       const items = result.items as unknown as Mosque[];
       
@@ -223,9 +229,28 @@ export const mosquesApi = {
         });
       }
       
+      // Apply pagination after filtering and sorting
+      const startIndex = (page - 1) * perPage;
+      const endIndex = startIndex + perPage;
+      const paginatedItems = filtered.slice(startIndex, endIndex);
+      
+      // Calculate total pages based on filtered results
+      // Note: This is an approximation since we don't know the total filtered count
+      // For accurate pagination, we'd need to fetch all items or use server-side filtering
+      const totalItems = filtered.length;
+      const totalPages = Math.ceil(totalItems / perPage);
+      
       // Fetch and attach amenities and activities to mosques
-      const mosquesWithAmenities = await attachAmenitiesToMosques(filtered);
-      return await attachActivitiesToMosques(mosquesWithAmenities);
+      const mosquesWithAmenities = await attachAmenitiesToMosques(paginatedItems);
+      const mosquesWithDetails = await attachActivitiesToMosques(mosquesWithAmenities);
+      
+      return {
+        items: mosquesWithDetails,
+        page,
+        perPage,
+        totalItems,
+        totalPages,
+      };
     } catch (error: any) {
       // Log the error for debugging
       console.error('Failed to fetch mosques:', {
@@ -235,6 +260,121 @@ export const mosquesApi = {
       });
       
       // Sanitize error to prevent information disclosure
+      throw sanitizeError(error);
+    }
+  },
+  
+  // List all mosques (for map view - no pagination)
+  async listAll(filters?: Omit<MosqueFilters, 'page' | 'perPage'>): Promise<Mosque[]> {
+    try {
+      // Build filter parts (without status filter to avoid 400 errors)
+      const filterParts: string[] = [];
+      
+      if (filters) {
+        if (filters.state && filters.state !== 'all') {
+          // Validate state against allowlist to prevent filter injection
+          if (!validateState(filters.state)) {
+            throw new Error('Invalid state parameter');
+          }
+          filterParts.push(`state = "${filters.state}"`);
+        }
+        
+        if (filters.search && filters.search.trim()) {
+          // Sanitize search term to prevent filter injection
+          const sanitizedSearch = sanitizeSearchTerm(filters.search);
+          if (sanitizedSearch) {
+            filterParts.push(`(name ~ "${sanitizedSearch}" || address ~ "${sanitizedSearch}" || state ~ "${sanitizedSearch}")`);
+          }
+        }
+      }
+      
+      // Build query options
+      const queryOptions: any = {};
+      
+      // Add filter if we have any filter parts
+      if (filterParts.length > 0) {
+        queryOptions.filter = filterParts.join(' && ');
+      }
+      
+      // Add sort if specified
+      if (filters?.sortBy) {
+        const sortString = this.getSortString(filters.sortBy);
+        if (sortString) {
+          queryOptions.sort = sortString;
+        }
+      }
+      
+      // Fetch all mosques using pagination to avoid 400 errors
+      const allItems: any[] = [];
+      let page = 1;
+      const fetchPerPage = 100;
+      let hasMore = true;
+      
+      while (hasMore) {
+        let result;
+        try {
+          result = await pb.collection('mosques').getList(page, fetchPerPage, queryOptions);
+        } catch (sortError: any) {
+          // If sort fails, try without sort
+          console.warn('Sort failed, trying without sort:', sortError);
+          const { sort, ...optionsWithoutSort } = queryOptions;
+          result = await pb.collection('mosques').getList(page, fetchPerPage, optionsWithoutSort);
+        }
+        
+        allItems.push(...result.items);
+        hasMore = result.page < result.totalPages;
+        page++;
+      }
+      
+      const items = allItems as unknown as Mosque[];
+      
+      // Filter client-side by status (only show approved mosques)
+      let filtered = items.filter((mosque: any) => !mosque.status || mosque.status === 'approved');
+      
+      // Apply any additional client-side filtering if needed
+      if (filters) {
+        if (filters.state && filters.state !== 'all') {
+          filtered = filtered.filter((m: any) => m.state === filters.state);
+        }
+      }
+      
+      // Sort client-side if needed
+      if (filters?.sortBy) {
+        switch (filters.sortBy) {
+          case 'alphabetical':
+            filtered.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+            break;
+          case 'most_amenities':
+            // Will be sorted after amenities are attached
+            break;
+          default:
+            filtered.sort((a, b) => {
+              const aDate = new Date(a.created || 0).getTime();
+              const bDate = new Date(b.created || 0).getTime();
+              return bDate - aDate;
+            });
+        }
+      }
+      
+      // Fetch and attach amenities and activities to mosques
+      const mosquesWithAmenities = await attachAmenitiesToMosques(filtered);
+      
+      // Sort by amenities count if needed
+      if (filters?.sortBy === 'most_amenities') {
+        mosquesWithAmenities.sort((a, b) => {
+          const aCount = (a.amenities?.length || 0) + (a.customAmenities?.length || 0);
+          const bCount = (b.amenities?.length || 0) + (b.customAmenities?.length || 0);
+          return bCount - aCount;
+        });
+      }
+      
+      return await attachActivitiesToMosques(mosquesWithAmenities);
+    } catch (error: any) {
+      console.error('Failed to fetch all mosques:', {
+        status: error.status,
+        message: error.message,
+        data: error.data,
+      });
       throw sanitizeError(error);
     }
   },
@@ -364,13 +504,19 @@ export const mosquesApi = {
   },
 
   // Update mosque
-  async update(id: string, data: Partial<Mosque>, imageFile?: File): Promise<Mosque> {
+  async update(id: string, data: Partial<Mosque>, imageFile?: File, deleteImage?: boolean): Promise<Mosque> {
     // If image file is provided, validate it first
     if (imageFile) {
       const validationError = validateImageFile(imageFile);
       if (validationError) {
         throw new Error(validationError);
       }
+    }
+
+    // If we need to delete the image, set image field to empty string
+    if (deleteImage) {
+      const updateData = { ...data, image: '' };
+      return await pb.collection('mosques').update(id, updateData) as unknown as Mosque;
     }
 
     // If we have an image file, use FormData
@@ -390,7 +536,7 @@ export const mosquesApi = {
   },
 
   // List all mosques for admin (including pending and rejected)
-  async listAll(): Promise<Mosque[]> {
+  async listAllAdmin(): Promise<Mosque[]> {
     try {
       // Fetch all mosques using pagination to avoid 400 errors
       const allItems: any[] = [];

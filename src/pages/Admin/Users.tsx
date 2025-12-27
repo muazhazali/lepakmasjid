@@ -1,39 +1,21 @@
 import { AdminLayout } from '@/components/Admin/AdminLayout';
 import { AuthGuard } from '@/components/Auth/AuthGuard';
-import { useUsers, useBanUser, useUnbanUser, useUpdateUser } from '@/hooks/use-users';
+import { useUsers, useDeleteUser, useUpdateUser } from '@/hooks/use-users';
 import { useTranslation } from '@/hooks/use-translation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Trash2, CheckCircle2, XCircle, Calendar, Clock } from 'lucide-react';
 
 const Users = () => {
   const { t } = useTranslation();
   const { data: users = [], isLoading } = useUsers();
-  const banUser = useBanUser();
-  const unbanUser = useUnbanUser();
+  const deleteUser = useDeleteUser();
   const updateUser = useUpdateUser();
-
-  const handleBan = async (id: string) => {
-    try {
-      await banUser.mutateAsync(id);
-      toast.success(t('admin.user_banned'));
-    } catch (error) {
-      toast.error(t('admin.ban_failed'));
-    }
-  };
-
-  const handleUnban = async (id: string) => {
-    try {
-      await unbanUser.mutateAsync(id);
-      toast.success(t('admin.user_unbanned'));
-    } catch (error) {
-      toast.error(t('admin.unban_failed'));
-    }
-  };
 
   const handleVerifiedToggle = async (id: string, currentVerified: boolean) => {
     try {
@@ -46,6 +28,27 @@ const Users = () => {
     } catch (error) {
       toast.error(t('admin.update_failed') || 'Failed to update user');
     }
+  };
+
+  const handleDelete = async (id: string, email: string) => {
+    try {
+      await deleteUser.mutateAsync(id);
+      toast.success(t('admin.user_deleted') || `User ${email} deleted successfully`);
+    } catch (error: any) {
+      toast.error(error?.message || t('admin.delete_failed') || 'Failed to delete user');
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   };
 
   return (
@@ -66,48 +69,98 @@ const Users = () => {
                 <Card key={user.id}>
                   <CardHeader>
                     <div className="flex items-center justify-between">
-                      <CardTitle>{user.name || user.email}</CardTitle>
+                      <div className="flex-1">
+                        <CardTitle>{user.name || user.email}</CardTitle>
+                        <p className="text-sm text-muted-foreground mt-1">{user.email}</p>
+                      </div>
                       <div className="flex items-center gap-2">
                         <Badge variant={user.verified ? 'default' : 'destructive'}>
-                          {user.verified ? t('admin.active') : t('admin.banned')}
+                          {user.verified ? t('admin.verified') || 'Verified' : t('admin.unverified') || 'Unverified'}
                         </Badge>
-                        <Badge variant="secondary">{t('admin.trust')}: {user.trust_score}</Badge>
+                        {user.role === 'admin' && (
+                          <Badge variant="secondary">{t('admin.role') || 'Admin'}</Badge>
+                        )}
                       </div>
                     </div>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-muted-foreground mb-4">{user.email}</p>
-                    <div className="flex flex-col gap-4">
+                    <div className="space-y-4">
+                      {/* Verified Toggle Button */}
                       <div className="flex items-center justify-between">
-                        <Label htmlFor={`verified-${user.id}`} className="text-sm font-medium">
+                        <Label className="text-sm font-medium">
                           {t('admin.verified') || 'Verified'}
                         </Label>
-                        <Switch
-                          id={`verified-${user.id}`}
-                          checked={user.verified}
-                          onCheckedChange={() => handleVerifiedToggle(user.id, user.verified)}
+                        <Button
+                          variant={user.verified ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => handleVerifiedToggle(user.id, user.verified)}
                           disabled={updateUser.isPending}
-                        />
+                          className="flex items-center gap-2"
+                        >
+                          {user.verified ? (
+                            <>
+                              <CheckCircle2 className="h-4 w-4" />
+                              {t('admin.verified') || 'Verified'}
+                            </>
+                          ) : (
+                            <>
+                              <XCircle className="h-4 w-4" />
+                              {t('admin.unverified') || 'Unverified'}
+                            </>
+                          )}
+                        </Button>
                       </div>
-                      <div className="flex gap-2">
-                        {user.verified ? (
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleBan(user.id)}
-                            disabled={banUser.isPending}
-                          >
-                            {t('admin.ban')}
-                          </Button>
-                        ) : (
-                          <Button
-                            size="sm"
-                            onClick={() => handleUnban(user.id)}
-                            disabled={unbanUser.isPending}
-                          >
-                            {t('admin.unban')}
-                          </Button>
-                        )}
+
+                      {/* Timestamps */}
+                      <div className="space-y-2 pt-2 border-t">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Calendar className="h-4 w-4" />
+                          <span className="font-medium">Created:</span>
+                          <span>{formatDate(user.created)}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Clock className="h-4 w-4" />
+                          <span className="font-medium">Updated:</span>
+                          <span>{formatDate(user.updated)}</span>
+                        </div>
+                      </div>
+
+                      {/* Remove Button */}
+                      <div className="pt-2 border-t">
+                        <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              disabled={deleteUser.isPending}
+                              className="flex items-center gap-2"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                              {t('admin.remove') || 'Remove'}
+                            </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                            <AlertDialogHeader>
+                              <AlertDialogTitle>
+                                {t('admin.confirm_delete') || 'Confirm Delete User'}
+                              </AlertDialogTitle>
+                              <AlertDialogDescription>
+                                {t('admin.delete_user_confirmation') || `Are you sure you want to delete user "${user.email}"? This action cannot be undone.`}
+                              </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                              <AlertDialogCancel>
+                                {t('common.cancel') || 'Cancel'}
+                              </AlertDialogCancel>
+                              <AlertDialogAction
+                                onClick={() => handleDelete(user.id, user.email)}
+                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                              >
+                                {t('admin.delete') || 'Delete'}
+                              </AlertDialogAction>
+                            </AlertDialogFooter>
+                          </AlertDialogContent>
+                        </AlertDialog>
                       </div>
                     </div>
                   </CardContent>

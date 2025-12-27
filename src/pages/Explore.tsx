@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Filter, Grid, List, MapIcon, Map as MapIcon2 } from 'lucide-react';
@@ -10,11 +10,23 @@ import { MapView } from '@/components/Map/MapView';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useMosques } from '@/hooks/use-mosques';
+import { useMosques, useMosquesAll } from '@/hooks/use-mosques';
 import { useTranslation } from '@/hooks/use-translation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SkipLink } from '@/components/SkipLink';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from '@/components/ui/pagination';
 import type { MosqueFilters } from '@/types';
+
+const VIEW_MODE_STORAGE_KEY = 'explore-view-mode';
+const PER_PAGE = 12;
 
 const Explore = () => {
   const [searchParams] = useSearchParams();
@@ -24,23 +36,63 @@ const Explore = () => {
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [selectedState, setSelectedState] = useState(searchParams.get('state') || '');
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
-  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'map'>('grid');
+  
+  // Initialize view mode from localStorage or default to 'grid'
+  const [viewMode, setViewMode] = useState<'grid' | 'list' | 'map'>(() => {
+    const saved = localStorage.getItem(VIEW_MODE_STORAGE_KEY);
+    return (saved as 'grid' | 'list' | 'map') || 'grid';
+  });
+  
   const [sortBy, setSortBy] = useState<'nearest' | 'most_amenities' | 'alphabetical'>('alphabetical');
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Persist view mode to localStorage
+  useEffect(() => {
+    localStorage.setItem(VIEW_MODE_STORAGE_KEY, viewMode);
+  }, [viewMode]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedState, selectedAmenities, sortBy]);
 
   const filters: MosqueFilters = useMemo(() => ({
     state: selectedState || undefined,
     amenities: selectedAmenities.length > 0 ? selectedAmenities : undefined,
     search: searchQuery || undefined,
     sortBy,
-  }), [searchQuery, selectedState, selectedAmenities, sortBy]);
+    page: viewMode !== 'map' ? currentPage : undefined,
+    perPage: viewMode !== 'map' ? PER_PAGE : undefined,
+  }), [searchQuery, selectedState, selectedAmenities, sortBy, currentPage, viewMode]);
 
-  const { data: mosques = [], isLoading, error } = useMosques(filters);
+  // Use paginated query for grid/list view, all mosques for map view
+  const { data: paginatedData, isLoading, error } = useMosques(viewMode !== 'map' ? filters : undefined);
+  const { data: allMosques = [], isLoading: isLoadingAll, error: errorAll } = useMosquesAll(
+    viewMode === 'map' ? {
+      state: selectedState || undefined,
+      amenities: selectedAmenities.length > 0 ? selectedAmenities : undefined,
+      search: searchQuery || undefined,
+      sortBy,
+    } : undefined
+  );
+
+  const mosques = viewMode === 'map' ? allMosques : (paginatedData?.items || []);
+  const isLoadingView = viewMode === 'map' ? isLoadingAll : isLoading;
+  const errorView = viewMode === 'map' ? errorAll : error;
+  const totalPages = paginatedData?.totalPages || 1;
+  const totalItems = paginatedData?.totalItems || mosques.length;
 
   const clearFilters = () => {
     setSearchQuery('');
     setSelectedState('');
     setSelectedAmenities([]);
+    setCurrentPage(1);
     navigate('/explore', { replace: true });
+  };
+
+  const handleViewModeChange = (mode: 'grid' | 'list' | 'map') => {
+    setViewMode(mode);
+    setCurrentPage(1); // Reset to first page when changing view mode
   };
 
   const activeFilterCount = (selectedState ? 1 : 0) + selectedAmenities.length + (searchQuery ? 1 : 0);
@@ -118,27 +170,30 @@ const Explore = () => {
                       <Button
                         variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
                         size="icon"
-                        onClick={() => setViewMode('grid')}
+                        onClick={() => handleViewModeChange('grid')}
                         className="rounded-none"
                         aria-label={t('explore.grid_view')}
+                        aria-pressed={viewMode === 'grid'}
                       >
                         <Grid className="h-4 w-4" />
                       </Button>
                       <Button
                         variant={viewMode === 'list' ? 'secondary' : 'ghost'}
                         size="icon"
-                        onClick={() => setViewMode('list')}
+                        onClick={() => handleViewModeChange('list')}
                         className="rounded-none"
                         aria-label={t('explore.list_view')}
+                        aria-pressed={viewMode === 'list'}
                       >
                         <List className="h-4 w-4" />
                       </Button>
                       <Button
                         variant={viewMode === 'map' ? 'secondary' : 'ghost'}
                         size="icon"
-                        onClick={() => setViewMode('map')}
+                        onClick={() => handleViewModeChange('map')}
                         className="rounded-none"
                         aria-label={t('explore.map_view')}
+                        aria-pressed={viewMode === 'map'}
                       >
                         <MapIcon2 className="h-4 w-4" />
                       </Button>
@@ -147,18 +202,34 @@ const Explore = () => {
                 </div>
 
                 {/* Error state */}
-                {error && (
+                {errorView && (
                   <Alert variant="destructive" className="mb-6">
                     <AlertDescription>
-                      {error instanceof Error ? error.message : t('featured.error')}
+                      {errorView instanceof Error ? errorView.message : t('featured.error')}
                     </AlertDescription>
                   </Alert>
                 )}
 
                 {/* Results count */}
-                {!error && (
+                {!errorView && (
                   <p className="text-sm text-muted-foreground mb-6">
-                    {t('explore.showing')} <span className="font-medium text-foreground">{mosques.length}</span> {t('explore.mosques')}
+                    {viewMode === 'map' ? (
+                      <>
+                        {t('explore.showing')} <span className="font-medium text-foreground">{totalItems}</span> {t('explore.mosques')}
+                      </>
+                    ) : (
+                      <>
+                        {t('explore.showing')} <span className="font-medium text-foreground">
+                          {(currentPage - 1) * PER_PAGE + 1}
+                        </span>
+                        {' - '}
+                        <span className="font-medium text-foreground">
+                          {Math.min(currentPage * PER_PAGE, totalItems)}
+                        </span>
+                        {' of '}
+                        <span className="font-medium text-foreground">{totalItems}</span> {t('explore.mosques')}
+                      </>
+                    )}
                     {activeFilterCount > 0 && (
                       <button 
                         onClick={clearFilters}
@@ -171,13 +242,13 @@ const Explore = () => {
                 )}
 
                 {/* Results */}
-                {isLoading ? (
-                  <div className={`grid gap-6 ${viewMode === 'grid' ? 'md:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
+                {isLoadingView ? (
+                  <div className={`grid gap-6 ${viewMode === 'grid' ? 'md:grid-cols-2 xl:grid-cols-3' : viewMode === 'list' ? 'grid-cols-1' : 'grid-cols-1'}`}>
                     {[1, 2, 3, 4, 5, 6].map((i) => (
-                      <Skeleton key={i} className="h-64 w-full" />
+                      <Skeleton key={i} className={viewMode === 'list' ? 'h-48 w-full' : 'h-64 w-full'} />
                     ))}
                   </div>
-                ) : error ? (
+                ) : errorView ? (
                   <div className="text-center py-16">
                     <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-destructive/10 flex items-center justify-center">
                       <MapIcon className="h-8 w-8 text-destructive" />
@@ -193,17 +264,91 @@ const Explore = () => {
                 ) : viewMode === 'map' ? (
                   <MapView mosques={mosques} className="h-[600px] w-full" />
                 ) : mosques.length > 0 ? (
-                  <div className={`grid gap-6 ${viewMode === 'grid' ? 'md:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
-                    {mosques.map((mosque, index) => (
-                      <div
-                        key={mosque.id}
-                        className="animate-fade-up"
-                        style={{ animationDelay: `${index * 0.05}s` }}
-                      >
-                        <MosqueCard mosque={mosque} />
+                  <>
+                    <div className={`grid gap-6 ${viewMode === 'grid' ? 'md:grid-cols-2 xl:grid-cols-3' : 'grid-cols-1'}`}>
+                      {mosques.map((mosque, index) => (
+                        <div
+                          key={mosque.id}
+                          className={`animate-fade-up ${viewMode === 'list' ? 'flex' : ''}`}
+                          style={{ animationDelay: `${index * 0.05}s` }}
+                        >
+                          <MosqueCard mosque={mosque} viewMode={viewMode} />
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {/* Pagination */}
+                    {viewMode !== 'map' && totalPages > 1 && (
+                      <div className="mt-8">
+                        <Pagination>
+                          <PaginationContent>
+                            <PaginationItem>
+                              <PaginationPrevious
+                                href="#"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  if (currentPage > 1) {
+                                    setCurrentPage(prev => prev - 1);
+                                  }
+                                }}
+                                className={currentPage === 1 ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                                aria-disabled={currentPage === 1}
+                              />
+                            </PaginationItem>
+                            
+                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                              let pageNum: number;
+                              if (totalPages <= 5) {
+                                pageNum = i + 1;
+                              } else if (currentPage <= 3) {
+                                pageNum = i + 1;
+                              } else if (currentPage >= totalPages - 2) {
+                                pageNum = totalPages - 4 + i;
+                              } else {
+                                pageNum = currentPage - 2 + i;
+                              }
+                              
+                              return (
+                                <PaginationItem key={pageNum}>
+                                  <PaginationLink
+                                    href="#"
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      setCurrentPage(pageNum);
+                                    }}
+                                    isActive={currentPage === pageNum}
+                                    className="cursor-pointer"
+                                  >
+                                    {pageNum}
+                                  </PaginationLink>
+                                </PaginationItem>
+                              );
+                            })}
+                            
+                            {totalPages > 5 && currentPage < totalPages - 2 && (
+                              <PaginationItem>
+                                <PaginationEllipsis />
+                              </PaginationItem>
+                            )}
+                            
+                            <PaginationItem>
+                              <PaginationNext
+                                href="#"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  if (currentPage < totalPages) {
+                                    setCurrentPage(prev => prev + 1);
+                                  }
+                                }}
+                                className={currentPage === totalPages ? 'pointer-events-none opacity-50' : 'cursor-pointer'}
+                                aria-disabled={currentPage === totalPages}
+                              />
+                            </PaginationItem>
+                          </PaginationContent>
+                        </Pagination>
                       </div>
-                    ))}
-                  </div>
+                    )}
+                  </>
                 ) : (
                   <div className="text-center py-16">
                     <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-secondary flex items-center justify-center">

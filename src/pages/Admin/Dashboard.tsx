@@ -9,8 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 const Dashboard = () => {
   const { t } = useTranslation();
   const { data: pendingSubmissions = [] } = useSubmissions('pending');
-  const { data: mosques = [] } = useMosques();
+  const { data: mosquesData } = useMosques({ perPage: 1 });
   const { data: users = [] } = useUsers();
+  const mosquesCount = mosquesData?.totalItems || 0;
 
   return (
     <AuthGuard requireAdmin>
@@ -33,7 +34,7 @@ const Dashboard = () => {
                 <CardTitle>{t('admin.mosques')}</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold">{mosques.length}</div>
+                <div className="text-3xl font-bold">{mosquesCount}</div>
               </CardContent>
             </Card>
 

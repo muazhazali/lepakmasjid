@@ -10,15 +10,17 @@ import { getImageUrl } from '@/lib/pocketbase-images';
 interface MosqueCardProps {
   mosque: Mosque;
   onClick?: () => void;
+  viewMode?: 'grid' | 'list';
 }
 
-const MosqueCard = ({ mosque, onClick }: MosqueCardProps) => {
+const MosqueCard = ({ mosque, onClick, viewMode = 'grid' }: MosqueCardProps) => {
   const { language } = useLanguageStore();
   
   const displayName = language === 'bm' && mosque.name_bm ? mosque.name_bm : mosque.name;
   
   // Get image URL for the mosque
-  const imageUrl = getImageUrl(mosque as any, mosque.image, '400x300');
+  const imageUrl = getImageUrl(mosque as any, mosque.image, viewMode === 'list' ? '300x200' : '400x300');
+  const isListView = viewMode === 'list';
 
   // Get icon component dynamically
   // Convert icon name to PascalCase and handle special cases
@@ -87,13 +89,17 @@ const MosqueCard = ({ mosque, onClick }: MosqueCardProps) => {
   return (
     <Link to={`/mosque/${mosque.id}`} onClick={onClick}>
       <article
-        className="card-elevated p-5 cursor-pointer group transition-all duration-300 hover:-translate-y-1"
+        className={`card-elevated cursor-pointer group transition-all duration-300 hover:-translate-y-1 ${
+          isListView 
+            ? 'flex gap-4 p-4' 
+            : 'p-5'
+        }`}
         role="button"
         tabIndex={0}
         aria-label={`View details for ${displayName}`}
       >
         {/* Image */}
-        <div className="relative h-40 rounded-lg overflow-hidden mb-4">
+        <div className={`relative rounded-lg overflow-hidden ${isListView ? 'w-48 h-32 flex-shrink-0' : 'h-40 mb-4'}`}>
           {imageUrl ? (
             <img 
               src={imageUrl} 
@@ -118,20 +124,22 @@ const MosqueCard = ({ mosque, onClick }: MosqueCardProps) => {
         </div>
 
         {/* Content */}
-        <div className="space-y-3">
+        <div className={`${isListView ? 'flex-1 min-w-0' : 'space-y-3'}`}>
           <div>
-            <h3 className="font-display text-xl font-bold text-foreground group-hover:text-primary transition-colors line-clamp-1">
+            <h3 className={`font-display font-bold text-foreground group-hover:text-primary transition-colors ${
+              isListView ? 'text-lg line-clamp-1' : 'text-xl line-clamp-1'
+            }`}>
               {displayName}
             </h3>
-            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+            <p className={`text-muted-foreground mt-1 ${isListView ? 'text-sm line-clamp-1' : 'text-sm line-clamp-2'}`}>
               {mosque.address}
             </p>
           </div>
 
           {/* Amenities */}
           {allAmenities.length > 0 && (
-            <div className="flex flex-wrap gap-2 pt-2">
-              {allAmenities.map((amenity) => {
+            <div className={`flex flex-wrap gap-2 ${isListView ? 'mt-2' : 'pt-2'}`}>
+              {allAmenities.slice(0, isListView ? 4 : allAmenities.length).map((amenity) => {
                 const IconComponent = getIcon(amenity.icon);
                 return (
                   <Badge
@@ -144,17 +152,28 @@ const MosqueCard = ({ mosque, onClick }: MosqueCardProps) => {
                   </Badge>
                 );
               })}
+              {isListView && allAmenities.length > 4 && (
+                <Badge
+                  variant="secondary"
+                  className="bg-muted text-muted-foreground font-normal px-2.5 py-1"
+                >
+                  <span className="text-xs">+{allAmenities.length - 4} more</span>
+                </Badge>
+              )}
             </div>
           )}
 
           {/* Activities */}
           {displayActivities.length > 0 && (
             <>
-              {allAmenities.length > 0 && (
+              {allAmenities.length > 0 && !isListView && (
                 <Separator className="my-3 border-border" />
               )}
+              {isListView && allAmenities.length > 0 && (
+                <Separator className="my-2 border-border" />
+              )}
               <div className="flex flex-wrap gap-2 pt-1">
-                {visibleActivities.map((activity) => (
+                {visibleActivities.slice(0, isListView ? 2 : visibleActivities.length).map((activity) => (
                   <Badge
                     key={activity.id}
                     variant="secondary"
@@ -163,12 +182,20 @@ const MosqueCard = ({ mosque, onClick }: MosqueCardProps) => {
                     <span className="text-xs">{activity.title}</span>
                   </Badge>
                 ))}
-                {remainingCount > 0 && (
+                {remainingCount > 0 && !isListView && (
                   <Badge
                     variant="secondary"
                     className="bg-muted text-muted-foreground font-normal px-2.5 py-1"
                   >
                     <span className="text-xs">+{remainingCount} more</span>
+                  </Badge>
+                )}
+                {isListView && displayActivities.length > 2 && (
+                  <Badge
+                    variant="secondary"
+                    className="bg-muted text-muted-foreground font-normal px-2.5 py-1"
+                  >
+                    <span className="text-xs">+{displayActivities.length - 2} more</span>
                   </Badge>
                 )}
               </div>

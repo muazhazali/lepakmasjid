@@ -168,6 +168,13 @@ async function main() {
       updateRule: null, // No updates allowed
       deleteRule: '@request.auth.role = "admin"',
     },
+    users: {
+      listRule: 'id = @request.auth.id || @request.auth.role = "admin"',
+      viewRule: 'id = @request.auth.id || @request.auth.role = "admin"',
+      createRule: '', // Public registration
+      updateRule: 'id = @request.auth.id || @request.auth.role = "admin"',
+      deleteRule: '@request.auth.role = "admin"',
+    },
   };
 
   console.log('🔧 Updating collection permissions...\n');

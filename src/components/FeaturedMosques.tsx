@@ -8,9 +8,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const FeaturedMosques = () => {
-  const { data: mosques, isLoading, error } = useMosques();
+  const { data: mosquesData, isLoading, error } = useMosques({ perPage: 3 });
   const { t } = useTranslation();
-  const featured = mosques?.slice(0, 3) || [];
+  const mosques = mosquesData?.items || [];
+  const featured = mosques.slice(0, 3);
 
   return (
     <section className="py-16 lg:py-24">

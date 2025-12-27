@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { AdminLayout } from '@/components/Admin/AdminLayout';
 import { AuthGuard } from '@/components/Auth/AuthGuard';
 import { useMosquesAdmin, useUpdateMosque } from '@/hooks/use-mosques';
@@ -15,11 +15,13 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
-import { X } from 'lucide-react';
+import { X, Upload, Trash2, ExternalLink } from 'lucide-react';
 import type { Mosque, MosqueAmenityDetails } from '@/types';
 import { mosqueAmenitiesApi } from '@/lib/api';
+import { getImageUrl, validateImageFile } from '@/lib/pocketbase-images';
 
 interface SelectedAmenity {
   amenity_id: string;
@@ -36,6 +38,11 @@ const Mosques = () => {
   const [selectedMosque, setSelectedMosque] = useState<Mosque | null>(null);
   const [editData, setEditData] = useState<Partial<Mosque>>({});
   const [selectedAmenities, setSelectedAmenities] = useState<Map<string, SelectedAmenity>>(new Map());
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const [deleteImage, setDeleteImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleEditClick = async (mosque: Mosque) => {
     setSelectedMosque(mosque);
@@ -48,6 +55,15 @@ const Mosques = () => {
       description_bm: mosque.description_bm,
       status: mosque.status,
     });
+    
+    // Reset image state
+    setImageFile(null);
+    setImagePreview(null);
+    setImageError(null);
+    setDeleteImage(false);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
     
     // Load existing amenities
     try {
@@ -75,11 +91,23 @@ const Mosques = () => {
   const handleSave = async () => {
     if (!selectedMosque) return;
     
+    // Validate image if a new one is selected
+    if (imageFile) {
+      const validationError = validateImageFile(imageFile);
+      if (validationError) {
+        setImageError(validationError);
+        toast.error(validationError);
+        return;
+      }
+    }
+    
     try {
-      // Update mosque data
+      // Update mosque data with image handling
       await updateMosque.mutateAsync({
         id: selectedMosque.id,
         data: editData,
+        imageFile: imageFile || undefined,
+        deleteImage: deleteImage,
       });
       
       // Update amenities
@@ -96,10 +124,30 @@ const Mosques = () => {
       setSelectedMosque(null);
       setEditData({});
       setSelectedAmenities(new Map());
-    } catch (error) {
-      toast.error(t('admin.update_failed') || 'Failed to update mosque');
+      // Clean up image preview URL
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+      setImageFile(null);
+      setImagePreview(null);
+      setImageError(null);
+      setDeleteImage(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } catch (error: any) {
+      toast.error(error?.message || t('admin.update_failed') || 'Failed to update mosque');
     }
   };
+
+  // Clean up image preview URL on unmount or dialog close
+  useEffect(() => {
+    return () => {
+      if (imagePreview) {
+        URL.revokeObjectURL(imagePreview);
+      }
+    };
+  }, [imagePreview]);
 
   const handleAmenityToggle = (amenityId: string) => {
     const newMap = new Map(selectedAmenities);
@@ -124,6 +172,62 @@ const Mosques = () => {
       });
     }
     setSelectedAmenities(newMap);
+  };
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    // Validate image
+    const validationError = validateImageFile(file);
+    if (validationError) {
+      setImageError(validationError);
+      setImageFile(null);
+      setImagePreview(null);
+      return;
+    }
+
+    setImageError(null);
+    setDeleteImage(false); // Reset delete flag when new image is selected
+
+    // Create preview
+    const previewUrl = URL.createObjectURL(file);
+    setImagePreview(previewUrl);
+    setImageFile(file);
+  };
+
+  const handleRemoveImage = () => {
+    if (imagePreview && imageFile) {
+      URL.revokeObjectURL(imagePreview);
+    }
+    setImageFile(null);
+    setImagePreview(null);
+    setImageError(null);
+    setDeleteImage(true);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const getCurrentImageUrl = () => {
+    if (!selectedMosque) return null;
+    if (imagePreview) return imagePreview; // New image preview
+    if (deleteImage) return null; // Image marked for deletion
+    return getImageUrl(selectedMosque, selectedMosque.image, '300x300', 'mosques');
+  };
+
+  const getFullImageUrl = () => {
+    if (!selectedMosque) return null;
+    if (imagePreview) return imagePreview; // New image preview
+    if (deleteImage) return null; // Image marked for deletion
+    return getImageUrl(selectedMosque, selectedMosque.image, undefined, 'mosques');
+  };
+
+  const hasOriginalImage = () => {
+    if (!selectedMosque) return false;
+    return !!selectedMosque.image && typeof selectedMosque.image === 'string' && selectedMosque.image.length > 0;
   };
 
   const getStatusBadgeVariant = (status: string) => {
@@ -189,7 +293,25 @@ const Mosques = () => {
           )}
         </div>
 
-        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <Dialog 
+          open={editDialogOpen} 
+          onOpenChange={(open) => {
+            setEditDialogOpen(open);
+            if (!open) {
+              // Clean up when dialog closes
+              if (imagePreview) {
+                URL.revokeObjectURL(imagePreview);
+              }
+              setImageFile(null);
+              setImagePreview(null);
+              setImageError(null);
+              setDeleteImage(false);
+              if (fileInputRef.current) {
+                fileInputRef.current.value = '';
+              }
+            }
+          }}
+        >
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
@@ -306,6 +428,143 @@ const Mosques = () => {
                     })}
                   </div>
                 </div>
+              </div>
+
+              {/* Image Section */}
+              <div className="space-y-4 pt-4 border-t">
+                <Label>{t('mosque.image') || 'Image'}</Label>
+                
+                {/* Current Image Preview */}
+                {getCurrentImageUrl() && !deleteImage && (
+                  <div className="space-y-2">
+                    <Label className="text-sm text-muted-foreground">Current Image</Label>
+                    <div className="flex items-start gap-4">
+                      <div className="relative">
+                        <img
+                          src={getCurrentImageUrl() || ''}
+                          alt={selectedMosque?.name || 'Mosque'}
+                          className="w-32 h-32 object-cover rounded-lg border"
+                        />
+                      </div>
+                      <div className="flex-1 space-y-2">
+                        <div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            asChild
+                          >
+                            <a
+                              href={getFullImageUrl() || '#'}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2"
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                              View Full Size
+                            </a>
+                          </Button>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          onClick={handleRemoveImage}
+                          className="flex items-center gap-2"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Remove Image
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* New Image Preview */}
+                {imagePreview && !deleteImage && (
+                  <div className="space-y-2">
+                    <Label className="text-sm text-muted-foreground">New Image Preview</Label>
+                    <div className="flex items-start gap-4">
+                      <div className="relative">
+                        <img
+                          src={imagePreview}
+                          alt="Preview"
+                          className="w-32 h-32 object-cover rounded-lg border"
+                        />
+                      </div>
+                      <div className="flex-1 space-y-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            if (imagePreview) {
+                              URL.revokeObjectURL(imagePreview);
+                            }
+                            setImageFile(null);
+                            setImagePreview(null);
+                            if (fileInputRef.current) {
+                              fileInputRef.current.value = '';
+                            }
+                          }}
+                          className="flex items-center gap-2"
+                        >
+                          <X className="h-4 w-4" />
+                          Clear Preview
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Image Deleted Message */}
+                {deleteImage && !imagePreview && (
+                  <Alert>
+                    <AlertDescription>
+                      Image will be removed when you save changes.
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {/* File Input */}
+                <div className="space-y-2">
+                  <Input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    onChange={handleImageChange}
+                    className="hidden"
+                    id="image-upload"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-full flex items-center gap-2"
+                  >
+                    <Upload className="h-4 w-4" />
+                    {imageFile ? 'Change Image' : hasOriginalImage() ? 'Update Image' : 'Upload Image'}
+                  </Button>
+                  {imageError && (
+                    <Alert variant="destructive">
+                      <AlertDescription>{imageError}</AlertDescription>
+                    </Alert>
+                  )}
+                </div>
+
+                {/* Restore Image Button */}
+                {deleteImage && !imagePreview && hasOriginalImage() && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setDeleteImage(false);
+                      setImageError(null);
+                    }}
+                  >
+                    Cancel Remove
+                  </Button>
+                )}
               </div>
             </div>
             <DialogFooter>

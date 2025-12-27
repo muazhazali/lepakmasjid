@@ -4,10 +4,51 @@ import type { User } from '@/types';
 export const usersApi = {
   // List users (admin only)
   async list(): Promise<User[]> {
-    const result = await pb.collection('users').getList(1, 100, {
-      sort: '-created',
-    });
-    return result.items as unknown as User[];
+    try {
+      // Fetch all users using pagination to avoid 400 errors
+      const allItems: any[] = [];
+      let page = 1;
+      const perPage = 100; // Reasonable page size
+      let hasMore = true;
+      
+      while (hasMore) {
+        // Try with sort first, fallback without sort if it fails
+        let result;
+        try {
+          result = await pb.collection('users').getList(page, perPage, {
+            sort: '-created',
+          });
+        } catch (sortError: any) {
+          // If sort fails, try without sort
+          console.warn('Sort failed, trying without sort:', sortError);
+          result = await pb.collection('users').getList(page, perPage);
+        }
+        
+        allItems.push(...result.items);
+        
+        // Check if there are more pages
+        hasMore = result.page < result.totalPages;
+        page++;
+      }
+      
+      // Sort client-side if server-side sort failed
+      if (allItems.length > 0 && allItems[0].created) {
+        allItems.sort((a, b) => {
+          const aDate = new Date(a.created || 0).getTime();
+          const bDate = new Date(b.created || 0).getTime();
+          return bDate - aDate; // Newest first
+        });
+      }
+      
+      return allItems as unknown as User[];
+    } catch (error: any) {
+      console.error('Failed to fetch users:', {
+        status: error.status,
+        message: error.message,
+        data: error.data,
+      });
+      throw error;
+    }
   },
 
   // Get single user
@@ -51,14 +92,10 @@ export const usersApi = {
     await pb.collection('users').requestPasswordReset(email);
   },
 
-  // Ban user (set verified to false or add banned flag)
-  async ban(id: string): Promise<User> {
-    return await this.update(id, { verified: false });
-  },
-
-  // Unban user
-  async unban(id: string): Promise<User> {
-    return await this.update(id, { verified: true });
+  // Delete user
+  async delete(id: string): Promise<boolean> {
+    await pb.collection('users').delete(id);
+    return true;
   },
 };
 

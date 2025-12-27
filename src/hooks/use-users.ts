@@ -27,22 +27,11 @@ export const useUser = (id: string | null) => {
   });
 };
 
-export const useBanUser = () => {
+export const useDeleteUser = () => {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: (id: string) => usersApi.ban(id),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: usersKeys.all });
-    },
-  });
-};
-
-export const useUnbanUser = () => {
-  const queryClient = useQueryClient();
-  
-  return useMutation({
-    mutationFn: (id: string) => usersApi.unban(id),
+    mutationFn: (id: string) => usersApi.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: usersKeys.all });
     },

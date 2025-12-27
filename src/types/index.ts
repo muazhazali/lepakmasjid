@@ -136,6 +136,17 @@ export interface MosqueFilters {
   sortBy?: 'nearest' | 'most_amenities' | 'alphabetical';
   userLocation?: { lat: number; lng: number };
   distance?: number; // in km
+  page?: number;
+  perPage?: number;
+}
+
+// Pagination response type
+export interface PaginatedResponse<T> {
+  items: T[];
+  page: number;
+  perPage: number;
+  totalItems: number;
+  totalPages: number;
 }
 
 // Malaysian states
