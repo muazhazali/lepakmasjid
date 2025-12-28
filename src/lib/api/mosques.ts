@@ -147,10 +147,8 @@ export const mosquesApi = {
           filterParts.push(`state = "${filters.state}"`);
         }
         
-        if (filters.amenities && filters.amenities.length > 0) {
-          // This requires a join query - simplified for now
-          // In production, you'd need to query mosque_amenities and join
-        }
+        // Amenities filtering is done client-side after amenities are attached
+        // This allows us to properly filter by amenity IDs from the mosque_amenities join table
         
         if (filters.search && filters.search.trim()) {
           // Sanitize search term to prevent filter injection
@@ -200,26 +198,49 @@ export const mosquesApi = {
         }
       }
       
-      // For most_amenities sort, we need to attach amenities first before sorting
-      // For other sorts, we can sort before attaching amenities
+      // We need to attach amenities BEFORE filtering by amenities and sorting
+      // This ensures we can filter correctly and sort by amenity count
+      const needsAmenitiesForFilter = filters?.amenities && filters.amenities.length > 0;
       const needsAmenitiesForSort = filters?.sortBy === 'most_amenities';
+      const needsAmenities = needsAmenitiesForFilter || needsAmenitiesForSort;
       
-      let mosquesToSort = filtered;
+      let mosquesWithAmenities = filtered;
       
-      // If we need amenities for sorting, attach them to all filtered items first
-      if (needsAmenitiesForSort) {
-        mosquesToSort = await attachAmenitiesToMosques(filtered);
+      // Attach amenities if needed for filtering or sorting
+      if (needsAmenities) {
+        mosquesWithAmenities = await attachAmenitiesToMosques(filtered);
+      }
+      
+      // Filter by amenities if specified
+      if (needsAmenitiesForFilter && filters.amenities) {
+        mosquesWithAmenities = mosquesWithAmenities.filter((mosque: Mosque) => {
+          // Get all amenity IDs from the mosque (both regular and custom amenities)
+          const mosqueAmenityIds = new Set<string>();
+          
+          // Add regular amenity IDs
+          if (mosque.amenities) {
+            mosque.amenities.forEach((amenity) => {
+              mosqueAmenityIds.add(amenity.id);
+            });
+          }
+          
+          // Check if mosque has ALL selected amenities
+          // All selected amenities must be present in the mosque
+          return filters.amenities.every((selectedAmenityId) => 
+            mosqueAmenityIds.has(selectedAmenityId)
+          );
+        });
       }
       
       // Sort client-side if needed (for cases where server-side sort might fail)
       if (filters?.sortBy) {
         switch (filters.sortBy) {
           case 'alphabetical':
-            mosquesToSort.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+            mosquesWithAmenities.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
             break;
           case 'most_amenities':
             // Sort by number of amenities (descending)
-            mosquesToSort.sort((a, b) => {
+            mosquesWithAmenities.sort((a, b) => {
               const aCount = (a.amenities?.length || 0) + (a.customAmenities?.length || 0);
               const bCount = (b.amenities?.length || 0) + (b.customAmenities?.length || 0);
               return bCount - aCount;
@@ -227,7 +248,7 @@ export const mosquesApi = {
             break;
           default:
             // Default: sort by created date (newest first)
-            mosquesToSort.sort((a, b) => {
+            mosquesWithAmenities.sort((a, b) => {
               const aDate = new Date(a.created || 0).getTime();
               const bDate = new Date(b.created || 0).getTime();
               return bDate - aDate;
@@ -235,7 +256,7 @@ export const mosquesApi = {
         }
       } else {
         // Default sort by created date (newest first)
-        mosquesToSort.sort((a, b) => {
+        mosquesWithAmenities.sort((a, b) => {
           const aDate = new Date(a.created || 0).getTime();
           const bDate = new Date(b.created || 0).getTime();
           return bDate - aDate;
@@ -245,20 +266,21 @@ export const mosquesApi = {
       // Apply pagination after filtering and sorting
       const startIndex = (page - 1) * perPage;
       const endIndex = startIndex + perPage;
-      const paginatedItems = mosquesToSort.slice(startIndex, endIndex);
+      const paginatedItems = mosquesWithAmenities.slice(startIndex, endIndex);
       
       // Calculate total pages based on filtered results
       // Note: This is an approximation since we don't know the total filtered count
       // For accurate pagination, we'd need to fetch all items or use server-side filtering
-      const totalItems = mosquesToSort.length;
+      const totalItems = mosquesWithAmenities.length;
       const totalPages = Math.ceil(totalItems / perPage);
       
-      // Fetch and attach amenities and activities to mosques (if not already attached)
-      let mosquesWithAmenities = paginatedItems;
-      if (!needsAmenitiesForSort) {
-        mosquesWithAmenities = await attachAmenitiesToMosques(paginatedItems);
+      // Attach amenities to paginated items if not already attached
+      let mosquesWithDetails = paginatedItems;
+      if (!needsAmenities) {
+        mosquesWithDetails = await attachAmenitiesToMosques(paginatedItems);
       }
-      const mosquesWithDetails = await attachActivitiesToMosques(mosquesWithAmenities);
+      // Always attach activities
+      mosquesWithDetails = await attachActivitiesToMosques(mosquesWithDetails);
       
       return {
         items: mosquesWithDetails,
@@ -355,34 +377,72 @@ export const mosquesApi = {
         }
       }
       
+      // We need to attach amenities BEFORE filtering by amenities and sorting
+      const needsAmenitiesForFilter = filters?.amenities && filters.amenities.length > 0;
+      const needsAmenitiesForSort = filters?.sortBy === 'most_amenities';
+      const needsAmenities = needsAmenitiesForFilter || needsAmenitiesForSort;
+      
+      let mosquesWithAmenities = filtered;
+      
+      // Attach amenities if needed for filtering or sorting
+      if (needsAmenities) {
+        mosquesWithAmenities = await attachAmenitiesToMosques(filtered);
+      }
+      
+      // Filter by amenities if specified
+      if (needsAmenitiesForFilter && filters.amenities) {
+        mosquesWithAmenities = mosquesWithAmenities.filter((mosque: Mosque) => {
+          // Get all amenity IDs from the mosque (both regular and custom amenities)
+          const mosqueAmenityIds = new Set<string>();
+          
+          // Add regular amenity IDs
+          if (mosque.amenities) {
+            mosque.amenities.forEach((amenity) => {
+              mosqueAmenityIds.add(amenity.id);
+            });
+          }
+          
+          // Check if mosque has ALL selected amenities
+          // All selected amenities must be present in the mosque
+          return filters.amenities!.every((selectedAmenityId) => 
+            mosqueAmenityIds.has(selectedAmenityId)
+          );
+        });
+      }
+      
       // Sort client-side if needed
       if (filters?.sortBy) {
         switch (filters.sortBy) {
           case 'alphabetical':
-            filtered.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+            mosquesWithAmenities.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
             break;
           case 'most_amenities':
-            // Will be sorted after amenities are attached
+            // Sort by number of amenities (descending)
+            mosquesWithAmenities.sort((a, b) => {
+              const aCount = (a.amenities?.length || 0) + (a.customAmenities?.length || 0);
+              const bCount = (b.amenities?.length || 0) + (b.customAmenities?.length || 0);
+              return bCount - aCount;
+            });
             break;
           default:
-            filtered.sort((a, b) => {
+            mosquesWithAmenities.sort((a, b) => {
               const aDate = new Date(a.created || 0).getTime();
               const bDate = new Date(b.created || 0).getTime();
               return bDate - aDate;
             });
         }
+      } else {
+        // Default sort by created date (newest first)
+        mosquesWithAmenities.sort((a, b) => {
+          const aDate = new Date(a.created || 0).getTime();
+          const bDate = new Date(b.created || 0).getTime();
+          return bDate - aDate;
+        });
       }
       
-      // Fetch and attach amenities and activities to mosques
-      const mosquesWithAmenities = await attachAmenitiesToMosques(filtered);
-      
-      // Sort by amenities count if needed
-      if (filters?.sortBy === 'most_amenities') {
-        mosquesWithAmenities.sort((a, b) => {
-          const aCount = (a.amenities?.length || 0) + (a.customAmenities?.length || 0);
-          const bCount = (b.amenities?.length || 0) + (b.customAmenities?.length || 0);
-          return bCount - aCount;
-        });
+      // Attach amenities if not already attached
+      if (!needsAmenities) {
+        mosquesWithAmenities = await attachAmenitiesToMosques(mosquesWithAmenities);
       }
       
       return await attachActivitiesToMosques(mosquesWithAmenities);
