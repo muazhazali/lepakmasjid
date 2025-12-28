@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { Filter, Grid, List, MapIcon, Map as MapIcon2 } from "lucide-react";
+import { Filter, Grid, List, MapIcon, Map as MapIcon2, Plus } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import FilterSidebar from "@/components/FilterSidebar";
@@ -184,6 +184,13 @@ const Explore = () => {
                     />
                   </div>
                   <div className="flex gap-2">
+                    <Button
+                      onClick={() => navigate("/submit")}
+                      className="h-12"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      {t("nav.contribute")}
+                    </Button>
                     <Button
                       variant="outline"
                       className="lg:hidden"

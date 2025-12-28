@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { MapPin, Github, Mail } from "lucide-react";
+import { Github, Mail } from "lucide-react";
 import { useTranslation } from "@/hooks/use-translation";
 
 const Footer = () => {
@@ -11,9 +11,11 @@ const Footer = () => {
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link to="/" className="flex items-center gap-2 mb-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-                <MapPin className="h-5 w-5" />
-              </div>
+              <img 
+                src="/lepak-masjid-logo.png" 
+                alt="Lepak Masjid Logo" 
+                className="h-10 w-10 object-contain"
+              />
               <span className="font-display text-xl font-bold text-foreground">
                 lepak<span className="text-primary">masjid</span>
               </span>

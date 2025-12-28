@@ -206,12 +206,17 @@ export const mosquesApi = {
       const page = filters?.page || 1;
       const perPage = filters?.perPage || 12;
 
-      // Fetch mosques from PocketBase (without status filter to avoid 400 errors)
-      // We fetch more items than needed to account for client-side filtering
-      const fetchPerPage = Math.max(perPage * 2, 50); // Fetch more to account for filtering
+      // Always fetch from page 1 with a larger batch size to account for client-side filtering
+      // We need to fetch enough items to cover the current page after filtering
+      // Calculate how many items we need: (page * perPage) + some buffer for filtering
+      // Use a multiplier to account for items that might be filtered out
+      // Fetch at least enough for the current page, plus a buffer
+      const itemsNeeded = page * perPage;
+      const bufferMultiplier = 2; // Account for items that might be filtered out
+      const fetchPerPage = Math.max(itemsNeeded * bufferMultiplier, perPage * 5, 100);
       const result = await pb
         .collection("mosques")
-        .getList(page, fetchPerPage, queryOptions);
+        .getList(1, fetchPerPage, queryOptions);
 
       const items = result.items as unknown as Mosque[];
 
