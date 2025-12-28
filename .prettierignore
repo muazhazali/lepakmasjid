@@ -1,0 +1,38 @@
+# Dependencies
+node_modules
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Build outputs
+dist
+dist-ssr
+build
+.next
+out
+
+# Logs
+*.log
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode
+.idea
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation
+.docs
+
+# Public assets (usually don't need formatting)
+public/*.ico
+public/*.png
+public/*.jpg
+public/*.svg
+

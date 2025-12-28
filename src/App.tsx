@@ -55,14 +55,14 @@ const App = () => {
               <Route path="/terms" element={<TermsOfUse />} />
               <Route path="/content-policy" element={<ContentPolicy />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
-              
+
               {/* Admin routes */}
               <Route path="/admin" element={<Dashboard />} />
               <Route path="/admin/submissions" element={<Submissions />} />
               <Route path="/admin/mosques" element={<Mosques />} />
               <Route path="/admin/users" element={<Users />} />
               <Route path="/admin/audit" element={<AuditLog />} />
-              
+
               {/* Catch-all */}
               <Route path="*" element={<NotFound />} />
             </Routes>

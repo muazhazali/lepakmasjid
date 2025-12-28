@@ -1,38 +1,44 @@
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useAuthStore } from '@/stores/auth';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2 } from 'lucide-react';
-import { useTranslation } from '@/hooks/use-translation';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useAuthStore } from "@/stores/auth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2 } from "lucide-react";
+import { useTranslation } from "@/hooks/use-translation";
 
-const createRegisterSchema = (t: (key: string) => string) => z.object({
-  name: z.string().min(2, t('form.name_min')).optional(),
-  email: z.string().email(t('form.invalid_email')),
-  password: z.string().min(8, t('form.password_min')),
-  passwordConfirm: z.string().min(8, t('form.password_required')),
-}).refine((data) => data.password === data.passwordConfirm, {
-  message: t('form.passwords_match'),
-  path: ['passwordConfirm'],
-});
+const createRegisterSchema = (t: (key: string) => string) =>
+  z
+    .object({
+      name: z.string().min(2, t("form.name_min")).optional(),
+      email: z.string().email(t("form.invalid_email")),
+      password: z.string().min(8, t("form.password_min")),
+      passwordConfirm: z.string().min(8, t("form.password_required")),
+    })
+    .refine((data) => data.password === data.passwordConfirm, {
+      message: t("form.passwords_match"),
+      path: ["passwordConfirm"],
+    });
 
 interface RegisterFormProps {
   onSuccess?: () => void;
   onSwitchToLogin?: () => void;
 }
 
-export const RegisterForm = ({ onSuccess, onSwitchToLogin }: RegisterFormProps) => {
+export const RegisterForm = ({
+  onSuccess,
+  onSwitchToLogin,
+}: RegisterFormProps) => {
   const [error, setError] = useState<string | null>(null);
   const { register: registerUser, isLoading } = useAuthStore();
   const { t } = useTranslation();
-  
+
   const registerSchema = createRegisterSchema(t);
   type RegisterFormData = z.infer<typeof registerSchema>;
-  
+
   const {
     register,
     handleSubmit,
@@ -44,10 +50,17 @@ export const RegisterForm = ({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
   const onSubmit = async (data: RegisterFormData) => {
     try {
       setError(null);
-      await registerUser(data.email, data.password, data.passwordConfirm, data.name);
+      await registerUser(
+        data.email,
+        data.password,
+        data.passwordConfirm,
+        data.name
+      );
       onSuccess?.();
-    } catch (err: any) {
-      setError(err.message || t('auth.register_failed'));
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : t("auth.register_failed");
+      setError(errorMessage);
     }
   };
 
@@ -60,12 +73,12 @@ export const RegisterForm = ({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="name">{t('auth.name')}</Label>
+        <Label htmlFor="name">{t("auth.name")}</Label>
         <Input
           id="name"
           type="text"
-          placeholder={t('form.name_placeholder')}
-          {...register('name')}
+          placeholder={t("form.name_placeholder")}
+          {...register("name")}
           disabled={isLoading}
         />
         {errors.name && (
@@ -74,12 +87,12 @@ export const RegisterForm = ({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="email">{t('auth.email')}</Label>
+        <Label htmlFor="email">{t("auth.email")}</Label>
         <Input
           id="email"
           type="email"
-          placeholder={t('form.email_placeholder')}
-          {...register('email')}
+          placeholder={t("form.email_placeholder")}
+          {...register("email")}
           disabled={isLoading}
         />
         {errors.email && (
@@ -88,12 +101,12 @@ export const RegisterForm = ({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="password">{t('auth.password')}</Label>
+        <Label htmlFor="password">{t("auth.password")}</Label>
         <Input
           id="password"
           type="password"
-          placeholder={t('form.password_placeholder')}
-          {...register('password')}
+          placeholder={t("form.password_placeholder")}
+          {...register("password")}
           disabled={isLoading}
         />
         {errors.password && (
@@ -102,16 +115,18 @@ export const RegisterForm = ({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="passwordConfirm">{t('auth.password_confirm')}</Label>
+        <Label htmlFor="passwordConfirm">{t("auth.password_confirm")}</Label>
         <Input
           id="passwordConfirm"
           type="password"
-          placeholder={t('form.password_placeholder')}
-          {...register('passwordConfirm')}
+          placeholder={t("form.password_placeholder")}
+          {...register("passwordConfirm")}
           disabled={isLoading}
         />
         {errors.passwordConfirm && (
-          <p className="text-sm text-destructive">{errors.passwordConfirm.message}</p>
+          <p className="text-sm text-destructive">
+            {errors.passwordConfirm.message}
+          </p>
         )}
       </div>
 
@@ -119,26 +134,25 @@ export const RegisterForm = ({ onSuccess, onSwitchToLogin }: RegisterFormProps) 
         {isLoading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            {t('auth.registering')}
+            {t("auth.registering")}
           </>
         ) : (
-          t('auth.register')
+          t("auth.register")
         )}
       </Button>
 
       {onSwitchToLogin && (
         <p className="text-center text-sm text-muted-foreground">
-          {t('auth.have_account')}{' '}
+          {t("auth.have_account")}{" "}
           <button
             type="button"
             onClick={onSwitchToLogin}
             className="text-primary hover:underline"
           >
-            {t('auth.login')}
+            {t("auth.login")}
           </button>
         </p>
       )}
     </form>
   );
 };
-

@@ -1,27 +1,39 @@
-import { useState, useEffect, useRef } from 'react';
-import { AdminLayout } from '@/components/Admin/AdminLayout';
-import { AuthGuard } from '@/components/Auth/AuthGuard';
-import { useMosquesAdmin, useUpdateMosque } from '@/hooks/use-mosques';
-import { useAmenities } from '@/hooks/use-amenities';
-import { useTranslation } from '@/hooks/use-translation';
-import { useLanguageStore } from '@/stores/language';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Link } from 'react-router-dom';
-import { toast } from 'sonner';
-import { X, Upload, Trash2, ExternalLink } from 'lucide-react';
-import type { Mosque, MosqueAmenityDetails } from '@/types';
-import { mosqueAmenitiesApi } from '@/lib/api';
-import { getImageUrl, validateImageFile } from '@/lib/pocketbase-images';
+import { useState, useEffect, useRef } from "react";
+import { AdminLayout } from "@/components/Admin/AdminLayout";
+import { AuthGuard } from "@/components/Auth/AuthGuard";
+import { useMosquesAdmin, useUpdateMosque } from "@/hooks/use-mosques";
+import { useAmenities } from "@/hooks/use-amenities";
+import { useTranslation } from "@/hooks/use-translation";
+import { useLanguageStore } from "@/stores/language";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Link } from "react-router-dom";
+import { toast } from "sonner";
+import { X, Upload, Trash2, ExternalLink } from "lucide-react";
+import type { Mosque, MosqueAmenityDetails } from "@/types";
+import { mosqueAmenitiesApi } from "@/lib/api";
+import { getImageUrl, validateImageFile } from "@/lib/pocketbase-images";
 
 interface SelectedAmenity {
   amenity_id: string;
@@ -37,7 +49,9 @@ const Mosques = () => {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [selectedMosque, setSelectedMosque] = useState<Mosque | null>(null);
   const [editData, setEditData] = useState<Partial<Mosque>>({});
-  const [selectedAmenities, setSelectedAmenities] = useState<Map<string, SelectedAmenity>>(new Map());
+  const [selectedAmenities, setSelectedAmenities] = useState<
+    Map<string, SelectedAmenity>
+  >(new Map());
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
@@ -55,42 +69,42 @@ const Mosques = () => {
       description_bm: mosque.description_bm,
       status: mosque.status,
     });
-    
+
     // Reset image state
     setImageFile(null);
     setImagePreview(null);
     setImageError(null);
     setDeleteImage(false);
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
-    
+
     // Load existing amenities
     try {
       const existingAmenities = await mosqueAmenitiesApi.getByMosque(mosque.id);
       const amenityMap = new Map<string, SelectedAmenity>();
-      
+
       existingAmenities.forEach((ma) => {
         if (ma.amenity_id) {
           amenityMap.set(ma.amenity_id, {
             amenity_id: ma.amenity_id,
-            details: ma.details || { notes: '' },
+            details: ma.details || { notes: "" },
           });
         }
       });
-      
+
       setSelectedAmenities(amenityMap);
     } catch (error) {
-      console.error('Failed to load amenities:', error);
+      console.error("Failed to load amenities:", error);
       setSelectedAmenities(new Map());
     }
-    
+
     setEditDialogOpen(true);
   };
 
   const handleSave = async () => {
     if (!selectedMosque) return;
-    
+
     // Validate image if a new one is selected
     if (imageFile) {
       const validationError = validateImageFile(imageFile);
@@ -100,7 +114,7 @@ const Mosques = () => {
         return;
       }
     }
-    
+
     try {
       // Update mosque data with image handling
       await updateMosque.mutateAsync({
@@ -109,17 +123,19 @@ const Mosques = () => {
         imageFile: imageFile || undefined,
         deleteImage: deleteImage,
       });
-      
+
       // Update amenities
-      const amenityData = Array.from(selectedAmenities.values()).map(amenity => ({
-        amenity_id: amenity.amenity_id,
-        details: amenity.details || {},
-        verified: true, // Admin edits are verified
-      }));
-      
+      const amenityData = Array.from(selectedAmenities.values()).map(
+        (amenity) => ({
+          amenity_id: amenity.amenity_id,
+          details: amenity.details || {},
+          verified: true, // Admin edits are verified
+        })
+      );
+
       await mosqueAmenitiesApi.replaceAll(selectedMosque.id, amenityData);
-      
-      toast.success(t('admin.mosque_updated') || 'Mosque updated successfully');
+
+      toast.success(t("admin.mosque_updated") || "Mosque updated successfully");
       setEditDialogOpen(false);
       setSelectedMosque(null);
       setEditData({});
@@ -133,10 +149,14 @@ const Mosques = () => {
       setImageError(null);
       setDeleteImage(false);
       if (fileInputRef.current) {
-        fileInputRef.current.value = '';
+        fileInputRef.current.value = "";
       }
-    } catch (error: any) {
-      toast.error(error?.message || t('admin.update_failed') || 'Failed to update mosque');
+    } catch (error: unknown) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : t("admin.update_failed") || "Failed to update mosque";
+      toast.error(errorMessage);
     }
   };
 
@@ -156,7 +176,7 @@ const Mosques = () => {
     } else {
       newMap.set(amenityId, {
         amenity_id: amenityId,
-        details: { notes: '' },
+        details: { notes: "" },
       });
     }
     setSelectedAmenities(newMap);
@@ -207,7 +227,7 @@ const Mosques = () => {
     setImageError(null);
     setDeleteImage(true);
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
@@ -215,31 +235,45 @@ const Mosques = () => {
     if (!selectedMosque) return null;
     if (imagePreview) return imagePreview; // New image preview
     if (deleteImage) return null; // Image marked for deletion
-    return getImageUrl(selectedMosque, selectedMosque.image, '300x300', 'mosques');
+    return getImageUrl(
+      selectedMosque,
+      selectedMosque.image,
+      "300x300",
+      "mosques"
+    );
   };
 
   const getFullImageUrl = () => {
     if (!selectedMosque) return null;
     if (imagePreview) return imagePreview; // New image preview
     if (deleteImage) return null; // Image marked for deletion
-    return getImageUrl(selectedMosque, selectedMosque.image, undefined, 'mosques');
+    return getImageUrl(
+      selectedMosque,
+      selectedMosque.image,
+      undefined,
+      "mosques"
+    );
   };
 
   const hasOriginalImage = () => {
     if (!selectedMosque) return false;
-    return !!selectedMosque.image && typeof selectedMosque.image === 'string' && selectedMosque.image.length > 0;
+    return (
+      !!selectedMosque.image &&
+      typeof selectedMosque.image === "string" &&
+      selectedMosque.image.length > 0
+    );
   };
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
-      case 'approved':
-        return 'default';
-      case 'pending':
-        return 'secondary';
-      case 'rejected':
-        return 'destructive';
+      case "approved":
+        return "default";
+      case "pending":
+        return "secondary";
+      case "rejected":
+        return "destructive";
       default:
-        return 'secondary';
+        return "secondary";
     }
   };
 
@@ -247,7 +281,9 @@ const Mosques = () => {
     <AuthGuard requireAdmin>
       <AdminLayout>
         <div>
-          <h1 className="font-display text-3xl font-bold mb-8">{t('admin.mosques')}</h1>
+          <h1 className="font-display text-3xl font-bold mb-8">
+            {t("admin.mosques")}
+          </h1>
 
           {isLoading ? (
             <div className="space-y-4">
@@ -262,13 +298,20 @@ const Mosques = () => {
                   <CardHeader>
                     <div className="flex items-center justify-between flex-wrap gap-2">
                       <CardTitle>
-                        <Link to={`/mosque/${mosque.id}`} className="hover:underline">
+                        <Link
+                          to={`/mosque/${mosque.id}`}
+                          className="hover:underline"
+                        >
                           {mosque.name}
                         </Link>
                       </CardTitle>
                       <div className="flex items-center gap-2">
-                        <Badge variant={getStatusBadgeVariant(mosque.status || 'pending')}>
-                          {mosque.status || 'pending'}
+                        <Badge
+                          variant={getStatusBadgeVariant(
+                            mosque.status || "pending"
+                          )}
+                        >
+                          {mosque.status || "pending"}
                         </Badge>
                         <Button
                           variant="outline"
@@ -276,7 +319,7 @@ const Mosques = () => {
                           onClick={() => handleEditClick(mosque)}
                           disabled={updateMosque.isPending}
                         >
-                          {t('admin.edit') || 'Edit'}
+                          {t("admin.edit") || "Edit"}
                         </Button>
                       </div>
                     </div>
@@ -284,7 +327,9 @@ const Mosques = () => {
                   <CardContent>
                     <p className="text-muted-foreground">{mosque.address}</p>
                     {mosque.state && (
-                      <p className="text-sm text-muted-foreground mt-1">{mosque.state}</p>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {mosque.state}
+                      </p>
                     )}
                   </CardContent>
                 </Card>
@@ -293,8 +338,8 @@ const Mosques = () => {
           )}
         </div>
 
-        <Dialog 
-          open={editDialogOpen} 
+        <Dialog
+          open={editDialogOpen}
           onOpenChange={(open) => {
             setEditDialogOpen(open);
             if (!open) {
@@ -307,7 +352,7 @@ const Mosques = () => {
               setImageError(null);
               setDeleteImage(false);
               if (fileInputRef.current) {
-                fileInputRef.current.value = '';
+                fileInputRef.current.value = "";
               }
             }
           }}
@@ -315,73 +360,100 @@ const Mosques = () => {
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
-                {t('admin.edit_mosque') || 'Edit Mosque'}
+                {t("admin.edit_mosque") || "Edit Mosque"}
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="name">{t('mosque.name')} (EN)</Label>
+                <Label htmlFor="name">{t("mosque.name")} (EN)</Label>
                 <Input
                   id="name"
-                  value={editData.name || ''}
-                  onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+                  value={editData.name || ""}
+                  onChange={(e) =>
+                    setEditData({ ...editData, name: e.target.value })
+                  }
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="name_bm">{t('mosque.name')} (BM)</Label>
+                <Label htmlFor="name_bm">{t("mosque.name")} (BM)</Label>
                 <Input
                   id="name_bm"
-                  value={editData.name_bm || ''}
-                  onChange={(e) => setEditData({ ...editData, name_bm: e.target.value })}
+                  value={editData.name_bm || ""}
+                  onChange={(e) =>
+                    setEditData({ ...editData, name_bm: e.target.value })
+                  }
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="address">{t('mosque.address')}</Label>
+                <Label htmlFor="address">{t("mosque.address")}</Label>
                 <Input
                   id="address"
-                  value={editData.address || ''}
-                  onChange={(e) => setEditData({ ...editData, address: e.target.value })}
+                  value={editData.address || ""}
+                  onChange={(e) =>
+                    setEditData({ ...editData, address: e.target.value })
+                  }
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="state">{t('mosque.state')}</Label>
+                <Label htmlFor="state">{t("mosque.state")}</Label>
                 <Input
                   id="state"
-                  value={editData.state || ''}
-                  onChange={(e) => setEditData({ ...editData, state: e.target.value })}
+                  value={editData.state || ""}
+                  onChange={(e) =>
+                    setEditData({ ...editData, state: e.target.value })
+                  }
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description">{t('mosque.description')} (EN)</Label>
+                <Label htmlFor="description">
+                  {t("mosque.description")} (EN)
+                </Label>
                 <Textarea
                   id="description"
-                  value={editData.description || ''}
-                  onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                  value={editData.description || ""}
+                  onChange={(e) =>
+                    setEditData({ ...editData, description: e.target.value })
+                  }
                   rows={3}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="description_bm">{t('mosque.description')} (BM)</Label>
+                <Label htmlFor="description_bm">
+                  {t("mosque.description")} (BM)
+                </Label>
                 <Textarea
                   id="description_bm"
-                  value={editData.description_bm || ''}
-                  onChange={(e) => setEditData({ ...editData, description_bm: e.target.value })}
+                  value={editData.description_bm || ""}
+                  onChange={(e) =>
+                    setEditData({ ...editData, description_bm: e.target.value })
+                  }
                   rows={3}
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="status">{t('admin.status') || 'Status'}</Label>
+                <Label htmlFor="status">{t("admin.status") || "Status"}</Label>
                 <Select
-                  value={editData.status || 'pending'}
-                  onValueChange={(value) => setEditData({ ...editData, status: value as 'pending' | 'approved' | 'rejected' })}
+                  value={editData.status || "pending"}
+                  onValueChange={(value) =>
+                    setEditData({
+                      ...editData,
+                      status: value as "pending" | "approved" | "rejected",
+                    })
+                  }
                 >
                   <SelectTrigger id="status">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="pending">{t('admin.pending') || 'Pending'}</SelectItem>
-                    <SelectItem value="approved">{t('admin.approved') || 'Approved'}</SelectItem>
-                    <SelectItem value="rejected">{t('admin.rejected') || 'Rejected'}</SelectItem>
+                    <SelectItem value="pending">
+                      {t("admin.pending") || "Pending"}
+                    </SelectItem>
+                    <SelectItem value="approved">
+                      {t("admin.approved") || "Approved"}
+                    </SelectItem>
+                    <SelectItem value="rejected">
+                      {t("admin.rejected") || "Rejected"}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -389,19 +461,25 @@ const Mosques = () => {
               {/* Amenities Section */}
               <div className="space-y-4 pt-4 border-t">
                 <div>
-                  <Label>{t('mosque.amenities')}</Label>
+                  <Label>{t("mosque.amenities")}</Label>
                   <div className="space-y-3 mt-3 max-h-96 overflow-y-auto">
                     {amenities.map((amenity) => {
                       const isChecked = selectedAmenities.has(amenity.id);
-                      const label = language === 'bm' ? amenity.label_bm : amenity.label_en;
-                      
+                      const label =
+                        language === "bm" ? amenity.label_bm : amenity.label_en;
+
                       return (
-                        <div key={amenity.id} className="space-y-2 border rounded-lg p-3">
+                        <div
+                          key={amenity.id}
+                          className="space-y-2 border rounded-lg p-3"
+                        >
                           <div className="flex items-center space-x-2">
                             <Checkbox
                               id={`admin-amenity-${amenity.id}`}
                               checked={isChecked}
-                              onCheckedChange={() => handleAmenityToggle(amenity.id)}
+                              onCheckedChange={() =>
+                                handleAmenityToggle(amenity.id)
+                              }
                             />
                             <Label
                               htmlFor={`admin-amenity-${amenity.id}`}
@@ -412,14 +490,27 @@ const Mosques = () => {
                           </div>
                           {isChecked && (
                             <div className="ml-6 space-y-2">
-                              <Label htmlFor={`admin-amenity-details-${amenity.id}`} className="text-sm">
-                                {t('submit.amenity_details')}
+                              <Label
+                                htmlFor={`admin-amenity-details-${amenity.id}`}
+                                className="text-sm"
+                              >
+                                {t("submit.amenity_details")}
                               </Label>
                               <Input
                                 id={`admin-amenity-details-${amenity.id}`}
-                                value={selectedAmenities.get(amenity.id)?.details?.notes || ''}
-                                onChange={(e) => handleAmenityDetailsChange(amenity.id, e.target.value)}
-                                placeholder={t('submit.amenity_details_placeholder')}
+                                value={
+                                  selectedAmenities.get(amenity.id)?.details
+                                    ?.notes || ""
+                                }
+                                onChange={(e) =>
+                                  handleAmenityDetailsChange(
+                                    amenity.id,
+                                    e.target.value
+                                  )
+                                }
+                                placeholder={t(
+                                  "submit.amenity_details_placeholder"
+                                )}
                               />
                             </div>
                           )}
@@ -432,17 +523,19 @@ const Mosques = () => {
 
               {/* Image Section */}
               <div className="space-y-4 pt-4 border-t">
-                <Label>{t('mosque.image') || 'Image'}</Label>
-                
+                <Label>{t("mosque.image") || "Image"}</Label>
+
                 {/* Current Image Preview */}
                 {getCurrentImageUrl() && !deleteImage && (
                   <div className="space-y-2">
-                    <Label className="text-sm text-muted-foreground">Current Image</Label>
+                    <Label className="text-sm text-muted-foreground">
+                      Current Image
+                    </Label>
                     <div className="flex items-start gap-4">
                       <div className="relative">
                         <img
-                          src={getCurrentImageUrl() || ''}
-                          alt={selectedMosque?.name || 'Mosque'}
+                          src={getCurrentImageUrl() || ""}
+                          alt={selectedMosque?.name || "Mosque"}
                           className="w-32 h-32 object-cover rounded-lg border"
                         />
                       </div>
@@ -455,7 +548,7 @@ const Mosques = () => {
                             asChild
                           >
                             <a
-                              href={getFullImageUrl() || '#'}
+                              href={getFullImageUrl() || "#"}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="flex items-center gap-2"
@@ -483,7 +576,9 @@ const Mosques = () => {
                 {/* New Image Preview */}
                 {imagePreview && !deleteImage && (
                   <div className="space-y-2">
-                    <Label className="text-sm text-muted-foreground">New Image Preview</Label>
+                    <Label className="text-sm text-muted-foreground">
+                      New Image Preview
+                    </Label>
                     <div className="flex items-start gap-4">
                       <div className="relative">
                         <img
@@ -504,7 +599,7 @@ const Mosques = () => {
                             setImageFile(null);
                             setImagePreview(null);
                             if (fileInputRef.current) {
-                              fileInputRef.current.value = '';
+                              fileInputRef.current.value = "";
                             }
                           }}
                           className="flex items-center gap-2"
@@ -543,7 +638,11 @@ const Mosques = () => {
                     className="w-full flex items-center gap-2"
                   >
                     <Upload className="h-4 w-4" />
-                    {imageFile ? 'Change Image' : hasOriginalImage() ? 'Update Image' : 'Upload Image'}
+                    {imageFile
+                      ? "Change Image"
+                      : hasOriginalImage()
+                        ? "Update Image"
+                        : "Upload Image"}
                   </Button>
                   {imageError && (
                     <Alert variant="destructive">
@@ -568,11 +667,14 @@ const Mosques = () => {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
-                {t('common.cancel')}
+              <Button
+                variant="outline"
+                onClick={() => setEditDialogOpen(false)}
+              >
+                {t("common.cancel")}
               </Button>
               <Button onClick={handleSave} disabled={updateMosque.isPending}>
-                {t('common.save') || 'Save'}
+                {t("common.save") || "Save"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -583,4 +685,3 @@ const Mosques = () => {
 };
 
 export default Mosques;
-

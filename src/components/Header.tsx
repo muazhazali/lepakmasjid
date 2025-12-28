@@ -1,7 +1,16 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, Moon, Sun, MapPin, User, LogOut, Settings } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  Menu,
+  X,
+  Moon,
+  Sun,
+  MapPin,
+  User,
+  LogOut,
+  Settings,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,13 +18,13 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { useAuthStore } from '@/stores/auth';
-import { useThemeStore } from '@/stores/theme';
-import { LanguageToggle } from './LanguageToggle';
-import { FontSizeToggle } from './FontSizeToggle';
-import { AuthDialog } from './Auth/AuthDialog';
-import { useTranslation } from '@/hooks/use-translation';
+} from "@/components/ui/dropdown-menu";
+import { useAuthStore } from "@/stores/auth";
+import { useThemeStore } from "@/stores/theme";
+import { LanguageToggle } from "./LanguageToggle";
+import { FontSizeToggle } from "./FontSizeToggle";
+import { AuthDialog } from "./Auth/AuthDialog";
+import { useTranslation } from "@/hooks/use-translation";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -28,15 +37,15 @@ const Header = () => {
   const handleToggleTheme = () => {
     // Toggle directly between light and dark, ignoring system preference
     if (isDark) {
-      setTheme('light');
+      setTheme("light");
     } else {
-      setTheme('dark');
+      setTheme("dark");
     }
   };
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    navigate("/");
   };
 
   return (
@@ -56,24 +65,24 @@ const Header = () => {
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center gap-6">
-              <Link 
-                to="/explore" 
+              <Link
+                to="/explore"
                 className="text-muted-foreground hover:text-foreground transition-colors font-medium"
               >
-                {t('nav.explore')}
+                {t("nav.explore")}
               </Link>
-              <Link 
-                to="/submit" 
+              <Link
+                to="/submit"
                 className="text-muted-foreground hover:text-foreground transition-colors font-medium"
               >
-                {t('nav.contribute')}
+                {t("nav.contribute")}
               </Link>
               {isAdmin && (
-                <Link 
-                  to="/admin" 
+                <Link
+                  to="/admin"
                   className="text-muted-foreground hover:text-foreground transition-colors font-medium"
                 >
-                  {t('nav.admin')}
+                  {t("nav.admin")}
                 </Link>
               )}
             </nav>
@@ -82,61 +91,73 @@ const Header = () => {
             <div className="flex items-center gap-2">
               <LanguageToggle />
               <FontSizeToggle />
-              
+
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={handleToggleTheme}
-                aria-label={isDark ? t('common.switch_light') : t('common.switch_dark')}
+                aria-label={
+                  isDark ? t("common.switch_light") : t("common.switch_dark")
+                }
               >
-                {isDark ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+                {isDark ? (
+                  <Sun className="h-5 w-5" />
+                ) : (
+                  <Moon className="h-5 w-5" />
+                )}
               </Button>
 
               {isAuthenticated ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" aria-label={t('common.user_menu')}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={t("common.user_menu")}
+                    >
                       <User className="h-5 w-5" />
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-56">
                     <DropdownMenuLabel>
                       <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium leading-none">{user?.name || user?.email}</p>
+                        <p className="text-sm font-medium leading-none">
+                          {user?.name || user?.email}
+                        </p>
                         <p className="text-xs leading-none text-muted-foreground">
                           {user?.email}
                         </p>
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => navigate('/profile')}>
+                    <DropdownMenuItem onClick={() => navigate("/profile")}>
                       <User className="mr-2 h-4 w-4" />
-                      {t('nav.profile')}
+                      {t("nav.profile")}
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate('/submit')}>
+                    <DropdownMenuItem onClick={() => navigate("/submit")}>
                       <Settings className="mr-2 h-4 w-4" />
-                      {t('nav.add_mosque')}
+                      {t("nav.add_mosque")}
                     </DropdownMenuItem>
                     {isAdmin && (
-                      <DropdownMenuItem onClick={() => navigate('/admin')}>
+                      <DropdownMenuItem onClick={() => navigate("/admin")}>
                         <Settings className="mr-2 h-4 w-4" />
-                        {t('nav.admin')}
+                        {t("nav.admin")}
                       </DropdownMenuItem>
                     )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onClick={handleLogout}>
                       <LogOut className="mr-2 h-4 w-4" />
-                      {t('auth.logout')}
+                      {t("auth.logout")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
-                <Button 
-                  variant="default" 
+                <Button
+                  variant="default"
                   className="hidden md:flex"
                   onClick={() => setAuthDialogOpen(true)}
                 >
-                  {t('auth.login')}
+                  {t("auth.login")}
                 </Button>
               )}
 
@@ -146,9 +167,13 @@ const Header = () => {
                 size="icon"
                 className="md:hidden"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                aria-label={t('common.toggle_menu')}
+                aria-label={t("common.toggle_menu")}
               >
-                {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+                {isMenuOpen ? (
+                  <X className="h-5 w-5" />
+                ) : (
+                  <Menu className="h-5 w-5" />
+                )}
               </Button>
             </div>
           </div>
@@ -157,40 +182,40 @@ const Header = () => {
           {isMenuOpen && (
             <nav className="md:hidden py-4 border-t border-border/50 animate-fade-in">
               <div className="flex flex-col gap-2">
-                <Link 
-                  to="/explore" 
+                <Link
+                  to="/explore"
                   className="px-4 py-3 text-foreground hover:bg-secondary rounded-lg transition-colors font-medium"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  {t('nav.explore')}
+                  {t("nav.explore")}
                 </Link>
-                <Link 
-                  to="/submit" 
+                <Link
+                  to="/submit"
                   className="px-4 py-3 text-foreground hover:bg-secondary rounded-lg transition-colors font-medium"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  {t('nav.contribute')}
+                  {t("nav.contribute")}
                 </Link>
                 {isAdmin && (
-                  <Link 
-                    to="/admin" 
+                  <Link
+                    to="/admin"
                     className="px-4 py-3 text-foreground hover:bg-secondary rounded-lg transition-colors font-medium"
                     onClick={() => setIsMenuOpen(false)}
                   >
-                    {t('nav.admin')}
+                    {t("nav.admin")}
                   </Link>
                 )}
                 {!isAuthenticated && (
                   <div className="px-4 pt-2">
-                    <Button 
-                      variant="default" 
+                    <Button
+                      variant="default"
                       className="w-full"
                       onClick={() => {
                         setIsMenuOpen(false);
                         setAuthDialogOpen(true);
                       }}
                     >
-                      {t('auth.login')}
+                      {t("auth.login")}
                     </Button>
                   </div>
                 )}
@@ -199,7 +224,7 @@ const Header = () => {
           )}
         </div>
       </header>
-      
+
       <AuthDialog open={authDialogOpen} onOpenChange={setAuthDialogOpen} />
     </>
   );

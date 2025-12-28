@@ -11,12 +11,15 @@ export interface Mosque {
   description?: string;
   description_bm?: string;
   image?: string | File | string[]; // File field: string (filename) or File (for upload) or array if multiple
-  status: 'pending' | 'approved' | 'rejected';
+  status: "pending" | "approved" | "rejected";
   created_by: string;
   created: string;
   updated: string;
   // Optional fields for list view with amenities and activities
-  amenities?: (Amenity & { details: MosqueAmenityDetails; verified: boolean })[];
+  amenities?: (Amenity & {
+    details: MosqueAmenityDetails;
+    verified: boolean;
+  })[];
   customAmenities?: MosqueAmenity[];
   activities?: Activity[];
 }
@@ -54,9 +57,9 @@ export interface ActivitySchedule {
   // For one_off:
   date?: string; // ISO date
   time?: string;
-  
+
   // For recurring:
-  recurrence?: 'daily' | 'weekly' | 'monthly';
+  recurrence?: "daily" | "weekly" | "monthly";
   days_of_week?: number[]; // 0-6, Sunday=0
   start_date?: string; // ISO date
   end_date?: string; // ISO date (optional)
@@ -69,11 +72,11 @@ export interface Activity {
   title_bm?: string;
   description: string;
   description_bm?: string;
-  type: 'one_off' | 'recurring' | 'fixed';
+  type: "one_off" | "recurring" | "fixed";
   schedule_json: ActivitySchedule;
   start_date?: string;
   end_date?: string;
-  status: 'active' | 'cancelled';
+  status: "active" | "cancelled";
   created_by: string;
   created: string;
   updated: string;
@@ -87,17 +90,17 @@ export interface User {
   avatar?: string;
   verified: boolean;
   trust_score: number;
-  role?: 'user' | 'admin';
+  role?: "user" | "admin";
   created: string;
   updated: string;
 }
 
 export interface Submission {
   id: string;
-  type: 'new_mosque' | 'edit_mosque';
+  type: "new_mosque" | "edit_mosque";
   mosque_id?: string;
   data: Record<string, unknown>; // Full mosque data
-  status: 'pending' | 'approved' | 'rejected';
+  status: "pending" | "approved" | "rejected";
   submitted_by: string;
   submitted_at: string;
   reviewed_by?: string;
@@ -133,7 +136,7 @@ export interface MosqueFilters {
   state?: string;
   amenities?: string[];
   search?: string;
-  sortBy?: 'nearest' | 'most_amenities' | 'alphabetical';
+  sortBy?: "nearest" | "most_amenities" | "alphabetical";
   userLocation?: { lat: number; lng: number };
   distance?: number; // in km
   page?: number;
@@ -151,23 +154,22 @@ export interface PaginatedResponse<T> {
 
 // Malaysian states
 export const MALAYSIAN_STATES = [
-  'Johor',
-  'Kedah',
-  'Kelantan',
-  'Melaka',
-  'Negeri Sembilan',
-  'Pahang',
-  'Penang',
-  'Perak',
-  'Perlis',
-  'Sabah',
-  'Sarawak',
-  'Selangor',
-  'Terengganu',
-  'WP Kuala Lumpur',
-  'WP Labuan',
-  'WP Putrajaya',
+  "Johor",
+  "Kedah",
+  "Kelantan",
+  "Melaka",
+  "Negeri Sembilan",
+  "Pahang",
+  "Penang",
+  "Perak",
+  "Perlis",
+  "Sabah",
+  "Sarawak",
+  "Selangor",
+  "Terengganu",
+  "WP Kuala Lumpur",
+  "WP Labuan",
+  "WP Putrajaya",
 ] as const;
 
-export type MalaysianState = typeof MALAYSIAN_STATES[number];
-
+export type MalaysianState = (typeof MALAYSIAN_STATES)[number];

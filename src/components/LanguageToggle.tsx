@@ -1,12 +1,12 @@
-import { Languages } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Languages } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { useLanguageStore } from '@/stores/language';
+} from "@/components/ui/dropdown-menu";
+import { useLanguageStore } from "@/stores/language";
 
 export const LanguageToggle = () => {
   const { language, setLanguage } = useLanguageStore();
@@ -20,14 +20,14 @@ export const LanguageToggle = () => {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem
-          onClick={() => setLanguage('en')}
-          className={language === 'en' ? 'bg-secondary' : ''}
+          onClick={() => setLanguage("en")}
+          className={language === "en" ? "bg-secondary" : ""}
         >
           English
         </DropdownMenuItem>
         <DropdownMenuItem
-          onClick={() => setLanguage('bm')}
-          className={language === 'bm' ? 'bg-secondary' : ''}
+          onClick={() => setLanguage("bm")}
+          className={language === "bm" ? "bg-secondary" : ""}
         >
           Bahasa Melayu
         </DropdownMenuItem>
@@ -35,4 +35,3 @@ export const LanguageToggle = () => {
     </DropdownMenu>
   );
 };
-

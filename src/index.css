@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Amiri:wght@400;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Amiri:wght@400;700&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -43,9 +43,21 @@
     --radius: 0.75rem;
 
     /* Custom tokens */
-    --gradient-hero: linear-gradient(135deg, hsl(158 64% 32%) 0%, hsl(158 50% 25%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(40 40% 99%) 0%, hsl(40 33% 96%) 100%);
-    --gradient-accent: linear-gradient(135deg, hsl(32 80% 55%) 0%, hsl(25 75% 50%) 100%);
+    --gradient-hero: linear-gradient(
+      135deg,
+      hsl(158 64% 32%) 0%,
+      hsl(158 50% 25%) 100%
+    );
+    --gradient-card: linear-gradient(
+      180deg,
+      hsl(40 40% 99%) 0%,
+      hsl(40 33% 96%) 100%
+    );
+    --gradient-accent: linear-gradient(
+      135deg,
+      hsl(32 80% 55%) 0%,
+      hsl(25 75% 50%) 100%
+    );
     --shadow-soft: 0 4px 20px -4px hsl(160 30% 15% / 0.08);
     --shadow-elevated: 0 12px 40px -8px hsl(160 30% 15% / 0.12);
     --shadow-glow: 0 0 60px -12px hsl(158 64% 32% / 0.3);
@@ -91,8 +103,16 @@
     --input: 160 15% 20%;
     --ring: 158 55% 45%;
 
-    --gradient-hero: linear-gradient(135deg, hsl(158 55% 35%) 0%, hsl(158 45% 25%) 100%);
-    --gradient-card: linear-gradient(180deg, hsl(160 20% 12%) 0%, hsl(160 20% 10%) 100%);
+    --gradient-hero: linear-gradient(
+      135deg,
+      hsl(158 55% 35%) 0%,
+      hsl(158 45% 25%) 100%
+    );
+    --gradient-card: linear-gradient(
+      180deg,
+      hsl(160 20% 12%) 0%,
+      hsl(160 20% 10%) 100%
+    );
     --shadow-soft: 0 4px 20px -4px hsl(0 0% 0% / 0.3);
     --shadow-elevated: 0 12px 40px -8px hsl(0 0% 0% / 0.4);
     --shadow-glow: 0 0 60px -12px hsl(158 55% 45% / 0.25);
@@ -118,7 +138,12 @@
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   }
 
-  h1, h2, h3, h4, h5, h6 {
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
     @apply font-display;
   }
 }
@@ -171,8 +196,13 @@
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 
 @keyframes fadeUp {
@@ -187,8 +217,12 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* Accessibility: respect reduced motion */

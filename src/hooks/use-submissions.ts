@@ -1,16 +1,18 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { submissionsApi } from '@/lib/api';
-import type { Submission } from '@/types';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { submissionsApi } from "@/lib/api";
+import type { Submission } from "@/types";
 
 export const submissionsKeys = {
-  all: ['submissions'] as const,
-  lists: () => [...submissionsKeys.all, 'list'] as const,
+  all: ["submissions"] as const,
+  lists: () => [...submissionsKeys.all, "list"] as const,
   list: (status?: string) => [...submissionsKeys.lists(), status] as const,
-  details: () => [...submissionsKeys.all, 'detail'] as const,
+  details: () => [...submissionsKeys.all, "detail"] as const,
   detail: (id: string) => [...submissionsKeys.details(), id] as const,
 };
 
-export const useSubmissions = (status?: 'pending' | 'approved' | 'rejected') => {
+export const useSubmissions = (
+  status?: "pending" | "approved" | "rejected"
+) => {
   return useQuery({
     queryKey: submissionsKeys.list(status),
     queryFn: () => submissionsApi.list(status),
@@ -18,9 +20,11 @@ export const useSubmissions = (status?: 'pending' | 'approved' | 'rejected') => 
   });
 };
 
-export const useMySubmissions = (status?: 'pending' | 'approved' | 'rejected') => {
+export const useMySubmissions = (
+  status?: "pending" | "approved" | "rejected"
+) => {
   return useQuery({
-    queryKey: ['submissions', 'my', status],
+    queryKey: ["submissions", "my", status],
     queryFn: () => submissionsApi.listMySubmissions(status),
     staleTime: 1 * 60 * 1000,
   });
@@ -28,7 +32,7 @@ export const useMySubmissions = (status?: 'pending' | 'approved' | 'rejected') =
 
 export const useSubmission = (id: string | null) => {
   return useQuery({
-    queryKey: submissionsKeys.detail(id || ''),
+    queryKey: submissionsKeys.detail(id || ""),
     queryFn: () => submissionsApi.get(id!),
     enabled: !!id,
     staleTime: 1 * 60 * 1000,
@@ -37,7 +41,7 @@ export const useSubmission = (id: string | null) => {
 
 export const useCreateSubmission = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: (data: Partial<Submission>) => submissionsApi.create(data),
     onSuccess: () => {
@@ -48,26 +52,32 @@ export const useCreateSubmission = () => {
 
 export const useApproveSubmission = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
     mutationFn: ({ id, reviewedBy }: { id: string; reviewedBy: string }) =>
       submissionsApi.approve(id, reviewedBy),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: submissionsKeys.all });
-      queryClient.invalidateQueries({ queryKey: ['mosques'] });
+      queryClient.invalidateQueries({ queryKey: ["mosques"] });
     },
   });
 };
 
 export const useRejectSubmission = () => {
   const queryClient = useQueryClient();
-  
+
   return useMutation({
-    mutationFn: ({ id, reviewedBy, reason }: { id: string; reviewedBy: string; reason: string }) =>
-      submissionsApi.reject(id, reviewedBy, reason),
+    mutationFn: ({
+      id,
+      reviewedBy,
+      reason,
+    }: {
+      id: string;
+      reviewedBy: string;
+      reason: string;
+    }) => submissionsApi.reject(id, reviewedBy, reason),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: submissionsKeys.all });
     },
   });
 };
-

@@ -44,6 +44,7 @@ A community-maintained, searchable directory of mosques in Malaysia focused on f
 ### Development Tools
 - **Package Manager**: pnpm 8+
 - **Linting**: ESLint 9.32+ with TypeScript ESLint
+- **Formatting**: Prettier 3.7+ (integrated with ESLint)
 - **Type Checking**: TypeScript 5.8+
 - **Code Quality**: Lovable Tagger (development mode)
 
@@ -340,7 +341,10 @@ The application uses PocketBase as the backend with the following collection str
 - `pnpm dev` - Start development server
 - `pnpm build` - Build for production
 - `pnpm preview` - Preview production build
-- `pnpm lint` - Run ESLint
+- `pnpm lint` - Run ESLint to check for code issues
+- `pnpm lint:fix` - Run ESLint and automatically fix issues
+- `pnpm format` - Format all code files with Prettier
+- `pnpm format:check` - Check if code files are formatted (useful for CI)
 
 ### PocketBase Setup
 - `pnpm test:connection` - Test connection to PocketBase
@@ -477,9 +481,46 @@ We welcome contributions! Here's how you can help:
    - Reference any related issues
    - Ensure all checks pass
 
+### Code Quality Tools
+
+This project uses **ESLint** for linting and **Prettier** for code formatting to ensure consistent code style across the codebase.
+
+#### ESLint
+- **Configuration**: `eslint.config.js` (flat config format)
+- **Plugins**: TypeScript ESLint, React Hooks, React Refresh
+- **Integration**: Configured to work with Prettier (no conflicts)
+
+#### Prettier
+- **Configuration**: `.prettierrc`
+- **Settings**: 2-space indentation, semicolons, double quotes, 80 character line width
+- **Integration**: ESLint rules that conflict with Prettier are disabled
+
+#### Usage
+
+Before committing code, run:
+```powershell
+# Format all code files
+pnpm format
+
+# Check for linting issues
+pnpm lint
+
+# Auto-fix linting issues
+pnpm lint:fix
+
+# Check if files are formatted (for CI)
+pnpm format:check
+```
+
+**Recommended**: Set up your editor to format on save:
+- **VS Code**: Install the "Prettier - Code formatter" extension and enable "Format on Save"
+- **Other editors**: Configure Prettier integration in your editor settings
+
 ### Development Guidelines
 
 - **Code Style**: Follow the existing TypeScript/React patterns
+- **Formatting**: Always run `pnpm format` before committing
+- **Linting**: Fix all ESLint warnings/errors before submitting PRs
 - **Components**: Use shadcn-ui components when possible
 - **State Management**: Use Zustand for global state, React Query for server state
 - **Accessibility**: Ensure all components are accessible (ARIA labels, keyboard navigation)

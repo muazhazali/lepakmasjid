@@ -1,6 +1,6 @@
 /**
  * Client-side rate limiting utility
- * 
+ *
  * NOTE: This is defense-in-depth only. Client-side rate limiting can be bypassed.
  * Server-side rate limiting MUST be implemented at PocketBase level or via reverse proxy (Cloudflare, nginx).
  */
@@ -26,18 +26,18 @@ export function checkRateLimit(
 ): boolean {
   const now = Date.now();
   const record = rateLimitStore.get(key);
-  
+
   // No record or window expired - reset
   if (!record || now > record.resetAt) {
     rateLimitStore.set(key, { count: 1, resetAt: now + windowMs });
     return true;
   }
-  
+
   // Check if limit exceeded
   if (record.count >= maxAttempts) {
     return false;
   }
-  
+
   // Increment count
   record.count++;
   return true;
@@ -61,12 +61,12 @@ export function getRemainingAttempts(
   if (!record) {
     return maxAttempts;
   }
-  
+
   const now = Date.now();
   if (now > record.resetAt) {
     return maxAttempts;
   }
-  
+
   return Math.max(0, maxAttempts - record.count);
 }
 
@@ -78,12 +78,11 @@ export function getResetTime(key: string): number | null {
   if (!record) {
     return null;
   }
-  
+
   const now = Date.now();
   if (now > record.resetAt) {
     return null;
   }
-  
+
   return record.resetAt - now;
 }
-

@@ -1,7 +1,7 @@
-import { Plus, Heart } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useTranslation } from '@/hooks/use-translation';
-import { Link } from 'react-router-dom';
+import { Plus, Heart } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useTranslation } from "@/hooks/use-translation";
+import { Link } from "react-router-dom";
 
 const CTASection = () => {
   const { t } = useTranslation();
@@ -18,18 +18,23 @@ const CTASection = () => {
           </div>
 
           <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-bold text-primary-foreground mb-6 text-balance">
-            {t('cta.title')}
+            {t("cta.title")}
           </h2>
 
           <p className="text-lg md:text-xl text-primary-foreground/80 mb-10 max-w-2xl mx-auto">
-            {t('cta.description')}
+            {t("cta.description")}
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button variant="accent" size="xl" className="shadow-elevated" asChild>
+            <Button
+              variant="accent"
+              size="xl"
+              className="shadow-elevated"
+              asChild
+            >
               <Link to="/submit">
                 <Plus className="h-5 w-5 mr-2" />
-                {t('cta.add_mosque')}
+                {t("cta.add_mosque")}
               </Link>
             </Button>
           </div>

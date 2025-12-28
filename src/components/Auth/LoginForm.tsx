@@ -1,33 +1,37 @@
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { useAuthStore } from '@/stores/auth';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2 } from 'lucide-react';
-import { useTranslation } from '@/hooks/use-translation';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useAuthStore } from "@/stores/auth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Loader2 } from "lucide-react";
+import { useTranslation } from "@/hooks/use-translation";
 
-const createLoginSchema = (t: (key: string) => string) => z.object({
-  email: z.string().email(t('form.invalid_email')),
-  password: z.string().min(8, t('form.password_min')),
-});
+const createLoginSchema = (t: (key: string) => string) =>
+  z.object({
+    email: z.string().email(t("form.invalid_email")),
+    password: z.string().min(8, t("form.password_min")),
+  });
 
 interface LoginFormProps {
   onSuccess?: () => void;
   onSwitchToRegister?: () => void;
 }
 
-export const LoginForm = ({ onSuccess, onSwitchToRegister }: LoginFormProps) => {
+export const LoginForm = ({
+  onSuccess,
+  onSwitchToRegister,
+}: LoginFormProps) => {
   const [error, setError] = useState<string | null>(null);
   const { login, isLoading } = useAuthStore();
   const { t } = useTranslation();
-  
+
   const loginSchema = createLoginSchema(t);
   type LoginFormData = z.infer<typeof loginSchema>;
-  
+
   const {
     register,
     handleSubmit,
@@ -41,8 +45,10 @@ export const LoginForm = ({ onSuccess, onSwitchToRegister }: LoginFormProps) => 
       setError(null);
       await login(data.email, data.password);
       onSuccess?.();
-    } catch (err: any) {
-      setError(err.message || t('auth.login_failed'));
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : t("auth.login_failed");
+      setError(errorMessage);
     }
   };
 
@@ -55,12 +61,12 @@ export const LoginForm = ({ onSuccess, onSwitchToRegister }: LoginFormProps) => 
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="email">{t('auth.email')}</Label>
+        <Label htmlFor="email">{t("auth.email")}</Label>
         <Input
           id="email"
           type="email"
-          placeholder={t('form.email_placeholder')}
-          {...register('email')}
+          placeholder={t("form.email_placeholder")}
+          {...register("email")}
           disabled={isLoading}
         />
         {errors.email && (
@@ -69,12 +75,12 @@ export const LoginForm = ({ onSuccess, onSwitchToRegister }: LoginFormProps) => 
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="password">{t('auth.password')}</Label>
+        <Label htmlFor="password">{t("auth.password")}</Label>
         <Input
           id="password"
           type="password"
-          placeholder={t('form.password_placeholder')}
-          {...register('password')}
+          placeholder={t("form.password_placeholder")}
+          {...register("password")}
           disabled={isLoading}
         />
         {errors.password && (
@@ -86,26 +92,25 @@ export const LoginForm = ({ onSuccess, onSwitchToRegister }: LoginFormProps) => 
         {isLoading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            {t('auth.logging_in')}
+            {t("auth.logging_in")}
           </>
         ) : (
-          t('auth.login')
+          t("auth.login")
         )}
       </Button>
 
       {onSwitchToRegister && (
         <p className="text-center text-sm text-muted-foreground">
-          {t('auth.no_account')}{' '}
+          {t("auth.no_account")}{" "}
           <button
             type="button"
             onClick={onSwitchToRegister}
             className="text-primary hover:underline"
           >
-            {t('auth.register')}
+            {t("auth.register")}
           </button>
         </p>
       )}
     </form>
   );
 };
-

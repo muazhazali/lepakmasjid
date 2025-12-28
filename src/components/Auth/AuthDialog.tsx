@@ -1,19 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { LoginForm } from './LoginForm';
-import { RegisterForm } from './RegisterForm';
-import { GoogleAuthButton } from './GoogleAuthButton';
-import { useAuthStore } from '@/stores/auth';
-import { CheckCircle2, AlertCircle, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+} from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { LoginForm } from "./LoginForm";
+import { RegisterForm } from "./RegisterForm";
+import { GoogleAuthButton } from "./GoogleAuthButton";
+import { useAuthStore } from "@/stores/auth";
+import { CheckCircle2, AlertCircle, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 interface AuthDialogProps {
   open: boolean;
@@ -21,12 +21,13 @@ interface AuthDialogProps {
 }
 
 export const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
-  const [activeTab, setActiveTab] = useState<'login' | 'register'>('login');
-  const { oauthStatus, oauthMessage, isAuthenticated, clearOAuthStatus } = useAuthStore();
+  const [activeTab, setActiveTab] = useState<"login" | "register">("login");
+  const { oauthStatus, oauthMessage, isAuthenticated, clearOAuthStatus } =
+    useAuthStore();
 
   // Close dialog on successful authentication
   useEffect(() => {
-    if (isAuthenticated && oauthStatus === 'success') {
+    if (isAuthenticated && oauthStatus === "success") {
       const timer = setTimeout(() => {
         onOpenChange(false);
         clearOAuthStatus();
@@ -57,28 +58,31 @@ export const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
         </DialogHeader>
 
         {/* OAuth Status Banner - Accessible and persistent */}
-        {oauthStatus !== 'idle' && oauthMessage && (
+        {oauthStatus !== "idle" && oauthMessage && (
           <Alert
-            variant={oauthStatus === 'error' ? 'destructive' : 'default'}
+            variant={oauthStatus === "error" ? "destructive" : "default"}
             role="status"
-            aria-live={oauthStatus === 'loading' ? 'polite' : 'assertive'}
+            aria-live={oauthStatus === "loading" ? "polite" : "assertive"}
             aria-atomic="true"
             className="relative"
           >
             <div className="flex items-start gap-3">
-              {oauthStatus === 'loading' && (
-                <div className="animate-spin rounded-full h-5 w-5 border-2 border-current border-t-transparent mt-0.5" aria-hidden="true" />
+              {oauthStatus === "loading" && (
+                <div
+                  className="animate-spin rounded-full h-5 w-5 border-2 border-current border-t-transparent mt-0.5"
+                  aria-hidden="true"
+                />
               )}
-              {oauthStatus === 'success' && (
+              {oauthStatus === "success" && (
                 <CheckCircle2 className="h-5 w-5 mt-0.5" aria-hidden="true" />
               )}
-              {oauthStatus === 'error' && (
+              {oauthStatus === "error" && (
                 <AlertCircle className="h-5 w-5 mt-0.5" aria-hidden="true" />
               )}
               <AlertDescription className="flex-1 pr-6">
                 {oauthMessage}
               </AlertDescription>
-              {oauthStatus !== 'loading' && (
+              {oauthStatus !== "loading" && (
                 <Button
                   variant="ghost"
                   size="icon"
@@ -93,7 +97,10 @@ export const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
           </Alert>
         )}
 
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'login' | 'register')}>
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => setActiveTab(v as "login" | "register")}
+        >
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="login">Login</TabsTrigger>
             <TabsTrigger value="register">Register</TabsTrigger>
@@ -106,12 +113,14 @@ export const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
                 <span className="w-full border-t" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or continue with
+                </span>
               </div>
             </div>
             <LoginForm
               onSuccess={handleSuccess}
-              onSwitchToRegister={() => setActiveTab('register')}
+              onSwitchToRegister={() => setActiveTab("register")}
             />
           </TabsContent>
 
@@ -122,12 +131,14 @@ export const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
                 <span className="w-full border-t" />
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+                <span className="bg-background px-2 text-muted-foreground">
+                  Or continue with
+                </span>
               </div>
             </div>
             <RegisterForm
               onSuccess={handleSuccess}
-              onSwitchToLogin={() => setActiveTab('login')}
+              onSwitchToLogin={() => setActiveTab("login")}
             />
           </TabsContent>
         </Tabs>
@@ -135,4 +146,3 @@ export const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
     </Dialog>
   );
 };
-

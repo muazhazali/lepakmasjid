@@ -9,14 +9,20 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft hover:shadow-elevated active:scale-[0.98]",
-        destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-soft",
-        outline: "border-2 border-primary bg-transparent text-primary hover:bg-primary hover:text-primary-foreground",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-soft",
-        ghost: "text-foreground hover:bg-secondary hover:text-secondary-foreground",
+        default:
+          "bg-primary text-primary-foreground hover:bg-primary/90 shadow-soft hover:shadow-elevated active:scale-[0.98]",
+        destructive:
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-soft",
+        outline:
+          "border-2 border-primary bg-transparent text-primary hover:bg-primary hover:text-primary-foreground",
+        secondary:
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-soft",
+        ghost:
+          "text-foreground hover:bg-secondary hover:text-secondary-foreground",
         link: "text-primary underline-offset-4 hover:underline",
         hero: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-glow hover:shadow-elevated active:scale-[0.98] text-lg px-8 py-4",
-        accent: "bg-accent text-accent-foreground hover:bg-accent/90 shadow-soft hover:shadow-elevated",
+        accent:
+          "bg-accent text-accent-foreground hover:bg-accent/90 shadow-soft hover:shadow-elevated",
       },
       size: {
         default: "h-11 px-5 py-2.5",
@@ -30,11 +36,12 @@ const buttonVariants = cva(
       variant: "default",
       size: "default",
     },
-  },
+  }
 );
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends
+    React.ButtonHTMLAttributes<HTMLButtonElement>,
     VariantProps<typeof buttonVariants> {
   asChild?: boolean;
 }
@@ -42,8 +49,14 @@ export interface ButtonProps
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, ...props }, ref) => {
     const Comp = asChild ? Slot : "button";
-    return <Comp className={cn(buttonVariants({ variant, size, className }))} ref={ref} {...props} />;
-  },
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    );
+  }
 );
 Button.displayName = "Button";
 

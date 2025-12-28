@@ -1,8 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
-import { MosqueMap, type MosqueMapRef } from './MosqueMap';
-import type { Mosque } from '@/types';
-import { Button } from '@/components/ui/button';
-import { Navigation, Loader2 } from 'lucide-react';
+import { useState, useEffect, useRef } from "react";
+import { MosqueMap, type MosqueMapRef } from "./MosqueMap";
+import type { Mosque } from "@/types";
+import { Button } from "@/components/ui/button";
+import { Navigation, Loader2 } from "lucide-react";
 
 interface MapViewProps {
   mosques: Mosque[];
@@ -10,9 +10,12 @@ interface MapViewProps {
 }
 
 export const MapView = ({ mosques, className }: MapViewProps) => {
-  const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
+  const [userLocation, setUserLocation] = useState<[number, number] | null>(
+    null
+  );
   const [isLocating, setIsLocating] = useState(false);
-  const [isInitialLocationLoading, setIsInitialLocationLoading] = useState(true);
+  const [isInitialLocationLoading, setIsInitialLocationLoading] =
+    useState(true);
   const [isZooming, setIsZooming] = useState(false);
   const mapRef = useRef<MosqueMapRef | null>(null);
 
@@ -22,7 +25,10 @@ export const MapView = ({ mosques, className }: MapViewProps) => {
       setIsInitialLocationLoading(true);
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setUserLocation([position.coords.latitude, position.coords.longitude]);
+          setUserLocation([
+            position.coords.latitude,
+            position.coords.longitude,
+          ]);
           setIsInitialLocationLoading(false);
         },
         () => {
@@ -76,9 +82,11 @@ export const MapView = ({ mosques, className }: MapViewProps) => {
     }
   };
 
-  const center = userLocation || (mosques.length > 0 
-    ? [mosques[0].lat, mosques[0].lng] as [number, number]
-    : [3.1390, 101.6869] as [number, number]); // Default to KL
+  const center =
+    userLocation ||
+    (mosques.length > 0
+      ? ([mosques[0].lat, mosques[0].lng] as [number, number])
+      : ([3.139, 101.6869] as [number, number])); // Default to KL
 
   // Zoom level: 15 for neighborhood level (good for viewing nearby mosques)
   // 13-14 for city level, 16+ for street level
@@ -122,19 +130,21 @@ export const MapView = ({ mosques, className }: MapViewProps) => {
           aria-label="Go to my location"
           disabled={isLocating || isZooming}
         >
-          {(isLocating || isZooming) ? (
+          {isLocating || isZooming ? (
             <Loader2 className="h-5 w-5 animate-spin" />
           ) : (
             <Navigation className="h-5 w-5" />
           )}
         </Button>
-        
+
         {/* Loading overlay for initial location fetch */}
         {isInitialLocationLoading && (
           <div className="absolute inset-0 bg-background/50 backdrop-blur-sm z-[60] flex items-center justify-center rounded-lg">
             <div className="flex flex-col items-center gap-2">
               <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <p className="text-sm text-muted-foreground">Getting your location...</p>
+              <p className="text-sm text-muted-foreground">
+                Getting your location...
+              </p>
             </div>
           </div>
         )}
@@ -142,4 +152,3 @@ export const MapView = ({ mosques, className }: MapViewProps) => {
     </>
   );
 };
-

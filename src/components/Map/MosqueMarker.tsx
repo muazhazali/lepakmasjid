@@ -1,8 +1,8 @@
-import { Marker, Popup } from 'react-leaflet';
-import L from 'leaflet';
-import type { Mosque } from '@/types';
-import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import { Marker, Popup } from "react-leaflet";
+import L from "leaflet";
+import type { Mosque } from "@/types";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 interface MosqueMarkerProps {
   mosque: Mosque;
@@ -10,9 +10,9 @@ interface MosqueMarkerProps {
 }
 
 // Create custom icon
-const createCustomIcon = (color: string = '#22c55e') => {
+const createCustomIcon = (color: string = "#22c55e") => {
   return L.divIcon({
-    className: 'custom-marker',
+    className: "custom-marker",
     html: `
       <div style="
         background-color: ${color};
@@ -64,4 +64,3 @@ export const MosqueMarker = ({ mosque, onClick }: MosqueMarkerProps) => {
     </Marker>
   );
 };
-

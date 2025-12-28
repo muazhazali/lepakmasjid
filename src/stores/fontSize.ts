@@ -1,5 +1,5 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 interface FontSizeState {
   fontSize: number; // base font size in px
@@ -18,45 +18,68 @@ export const useFontSizeStore = create<FontSizeState>()(
   persist(
     (set) => ({
       fontSize: DEFAULT_FONT_SIZE,
-      
+
       setFontSize: (size: number) => {
-        const clampedSize = Math.max(MIN_FONT_SIZE, Math.min(MAX_FONT_SIZE, size));
+        const clampedSize = Math.max(
+          MIN_FONT_SIZE,
+          Math.min(MAX_FONT_SIZE, size)
+        );
         set({ fontSize: clampedSize });
-        
+
         // Update CSS variable
-        document.documentElement.style.setProperty('--base-font-size', `${clampedSize}px`);
+        document.documentElement.style.setProperty(
+          "--base-font-size",
+          `${clampedSize}px`
+        );
       },
-      
+
       increaseFontSize: () => {
         set((state) => {
-          const newSize = Math.min(MAX_FONT_SIZE, state.fontSize + FONT_SIZE_STEP);
-          document.documentElement.style.setProperty('--base-font-size', `${newSize}px`);
+          const newSize = Math.min(
+            MAX_FONT_SIZE,
+            state.fontSize + FONT_SIZE_STEP
+          );
+          document.documentElement.style.setProperty(
+            "--base-font-size",
+            `${newSize}px`
+          );
           return { fontSize: newSize };
         });
       },
-      
+
       decreaseFontSize: () => {
         set((state) => {
-          const newSize = Math.max(MIN_FONT_SIZE, state.fontSize - FONT_SIZE_STEP);
-          document.documentElement.style.setProperty('--base-font-size', `${newSize}px`);
+          const newSize = Math.max(
+            MIN_FONT_SIZE,
+            state.fontSize - FONT_SIZE_STEP
+          );
+          document.documentElement.style.setProperty(
+            "--base-font-size",
+            `${newSize}px`
+          );
           return { fontSize: newSize };
         });
       },
-      
+
       resetFontSize: () => {
         set({ fontSize: DEFAULT_FONT_SIZE });
-        document.documentElement.style.setProperty('--base-font-size', `${DEFAULT_FONT_SIZE}px`);
+        document.documentElement.style.setProperty(
+          "--base-font-size",
+          `${DEFAULT_FONT_SIZE}px`
+        );
       },
     }),
     {
-      name: 'font-size-storage',
+      name: "font-size-storage",
       onRehydrateStorage: () => (state) => {
         // Apply font size on rehydration
         if (state) {
-          document.documentElement.style.setProperty('--base-font-size', `${state.fontSize}px`);
+          document.documentElement.style.setProperty(
+            "--base-font-size",
+            `${state.fontSize}px`
+          );
         }
       },
     }
   )
 );
-

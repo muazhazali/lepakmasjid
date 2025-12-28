@@ -1,26 +1,32 @@
-import { MALAYSIAN_STATES } from '@/types';
+import { MALAYSIAN_STATES } from "@/types";
 
 /**
  * Validates Malaysian state name against allowlist
  */
 export function validateState(state: string): boolean {
-  return MALAYSIAN_STATES.includes(state as any);
+  return (MALAYSIAN_STATES as readonly string[]).includes(state);
 }
 
 /**
  * Validates action type for audit logs
  */
-const VALID_ACTIONS = ['create', 'update', 'delete', 'approve', 'reject'] as const;
+const VALID_ACTIONS = [
+  "create",
+  "update",
+  "delete",
+  "approve",
+  "reject",
+] as const;
 export function validateAction(action: string): boolean {
-  return VALID_ACTIONS.includes(action as any);
+  return (VALID_ACTIONS as readonly string[]).includes(action);
 }
 
 /**
  * Validates entity type for audit logs
  */
-const VALID_ENTITY_TYPES = ['mosque', 'submission', 'user'] as const;
+const VALID_ENTITY_TYPES = ["mosque", "submission", "user"] as const;
 export function validateEntityType(entityType: string): boolean {
-  return VALID_ENTITY_TYPES.includes(entityType as any);
+  return (VALID_ENTITY_TYPES as readonly string[]).includes(entityType);
 }
 
 /**
@@ -50,7 +56,7 @@ export function validateRecordId(id: string): boolean {
  * Sanitizes search term by escaping quotes and limiting length
  */
 export function sanitizeSearchTerm(search: string): string {
-  if (!search) return '';
+  if (!search) return "";
   // Trim and limit length
   const trimmed = search.trim().slice(0, 200);
   // Escape quotes to prevent filter injection
@@ -60,8 +66,7 @@ export function sanitizeSearchTerm(search: string): string {
 /**
  * Validates submission status
  */
-const VALID_SUBMISSION_STATUSES = ['pending', 'approved', 'rejected'] as const;
+const VALID_SUBMISSION_STATUSES = ["pending", "approved", "rejected"] as const;
 export function validateSubmissionStatus(status: string): boolean {
-  return VALID_SUBMISSION_STATUSES.includes(status as any);
+  return (VALID_SUBMISSION_STATUSES as readonly string[]).includes(status);
 }
-

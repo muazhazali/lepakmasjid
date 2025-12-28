@@ -1,13 +1,16 @@
-import { useEffect } from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
-import { useAuthStore } from '@/stores/auth';
+import { useEffect } from "react";
+import { Navigate, useLocation } from "react-router-dom";
+import { useAuthStore } from "@/stores/auth";
 
 interface AuthGuardProps {
   children: React.ReactNode;
   requireAdmin?: boolean;
 }
 
-export const AuthGuard = ({ children, requireAdmin = false }: AuthGuardProps) => {
+export const AuthGuard = ({
+  children,
+  requireAdmin = false,
+}: AuthGuardProps) => {
   const { isAuthenticated, isAdmin, isLoading } = useAuthStore();
   const location = useLocation();
 
@@ -34,4 +37,3 @@ export const AuthGuard = ({ children, requireAdmin = false }: AuthGuardProps) =>
 
   return <>{children}</>;
 };
-

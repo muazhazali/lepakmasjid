@@ -1,21 +1,25 @@
-import { useEffect, useRef, forwardRef, useImperativeHandle } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import L from 'leaflet';
-import type { Mosque } from '@/types';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useLanguageStore } from '@/stores/language';
-import { useNavigate } from 'react-router-dom';
-import * as LucideIcons from 'lucide-react';
-import { MapPin } from 'lucide-react';
-import 'leaflet/dist/leaflet.css';
+import { useEffect, useRef, forwardRef, useImperativeHandle } from "react";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import L from "leaflet";
+import type { Mosque } from "@/types";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useLanguageStore } from "@/stores/language";
+import { useNavigate } from "react-router-dom";
+import * as LucideIcons from "lucide-react";
+import { MapPin } from "lucide-react";
+import "leaflet/dist/leaflet.css";
 
 // Fix for default marker icons in React-Leaflet
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+  iconRetinaUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
+  iconUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
+  shadowUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
 });
 
 interface MosqueMapProps {
@@ -32,50 +36,55 @@ interface MosqueMapProps {
 function MosquePopupContent({ mosque }: { mosque: Mosque }) {
   const navigate = useNavigate();
   const { language } = useLanguageStore();
-  
-  const displayName = language === 'bm' && mosque.name_bm ? mosque.name_bm : mosque.name;
-  
+
+  const displayName =
+    language === "bm" && mosque.name_bm ? mosque.name_bm : mosque.name;
+
   // Get icon component dynamically (same logic as MosqueCard)
   const getIcon = (iconName: string) => {
     if (!iconName) return MapPin;
-    
+
     const normalized = iconName.toLowerCase().trim();
     const iconMap: Record<string, string> = {
-      'wifi': 'Wifi',
-      'laptop': 'Laptop',
-      'book': 'BookOpen',
-      'accessibility': 'Accessibility',
-      'car': 'Car',
-      'droplet': 'Droplet',
-      'users': 'Users',
-      'wind': 'Wind',
-      'utensils': 'UtensilsCrossed',
-      'graduation-cap': 'GraduationCap',
-      'graduationcap': 'GraduationCap',
+      wifi: "Wifi",
+      laptop: "Laptop",
+      book: "BookOpen",
+      accessibility: "Accessibility",
+      car: "Car",
+      droplet: "Droplet",
+      users: "Users",
+      wind: "Wind",
+      utensils: "UtensilsCrossed",
+      "graduation-cap": "GraduationCap",
+      graduationcap: "GraduationCap",
     };
-    
+
     const mappedName = iconMap[normalized];
-    const IconComponent = mappedName 
-      ? ((LucideIcons as any)[mappedName] || MapPin)
+    type LucideIconName = keyof typeof LucideIcons;
+    const IconComponent = mappedName
+      ? ((LucideIcons as Record<string, React.ComponentType>)[
+          mappedName as LucideIconName
+        ] as typeof MapPin) || MapPin
       : MapPin;
-    
+
     return IconComponent;
   };
 
   // Combine regular amenities and custom amenities
   const allAmenities = [
-    ...(mosque.amenities || []).map(amenity => ({
+    ...(mosque.amenities || []).map((amenity) => ({
       id: amenity.id,
-      label: language === 'bm' ? amenity.label_bm : amenity.label_en,
+      label: language === "bm" ? amenity.label_bm : amenity.label_en,
       icon: amenity.icon,
       isCustom: false,
     })),
-    ...(mosque.customAmenities || []).map(customAmenity => ({
+    ...(mosque.customAmenities || []).map((customAmenity) => ({
       id: customAmenity.id,
-      label: language === 'bm' 
-        ? (customAmenity.details.custom_name || 'Custom Amenity')
-        : (customAmenity.details.custom_name_en || 'Custom Amenity'),
-      icon: customAmenity.details.custom_icon || 'MapPin',
+      label:
+        language === "bm"
+          ? customAmenity.details.custom_name || "Custom Amenity"
+          : customAmenity.details.custom_name_en || "Custom Amenity",
+      icon: customAmenity.details.custom_icon || "MapPin",
       isCustom: true,
     })),
   ];
@@ -83,12 +92,16 @@ function MosquePopupContent({ mosque }: { mosque: Mosque }) {
   return (
     <div className="p-3 min-w-[200px] max-w-[280px]">
       <h3 className="font-semibold text-base mb-1.5">{displayName}</h3>
-      <p className="text-xs text-muted-foreground mb-3 line-clamp-2">{mosque.address}</p>
-      
+      <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+        {mosque.address}
+      </p>
+
       {/* Amenities/Facilities */}
       {allAmenities.length > 0 && (
         <div className="mb-3">
-          <p className="text-xs font-medium text-muted-foreground mb-2">Facilities:</p>
+          <p className="text-xs font-medium text-muted-foreground mb-2">
+            Facilities:
+          </p>
           <div className="flex flex-wrap gap-1.5">
             {allAmenities.slice(0, 6).map((amenity) => {
               const IconComponent = getIcon(amenity.icon);
@@ -114,7 +127,7 @@ function MosquePopupContent({ mosque }: { mosque: Mosque }) {
           </div>
         </div>
       )}
-      
+
       {/* View Details Button */}
       <Button
         size="sm"
@@ -132,12 +145,12 @@ export interface MosqueMapRef {
 }
 
 // Component to fit map bounds to markers
-function FitBounds({ 
-  mosques, 
-  userLocation, 
-  prioritizeUserLocation 
-}: { 
-  mosques: Mosque[]; 
+function FitBounds({
+  mosques,
+  userLocation,
+  prioritizeUserLocation,
+}: {
+  mosques: Mosque[];
   userLocation?: [number, number] | null;
   prioritizeUserLocation?: boolean;
 }) {
@@ -154,12 +167,12 @@ function FitBounds({
       const bounds = L.latLngBounds(
         mosques.map((m) => [m.lat, m.lng] as [number, number])
       );
-      
+
       // Include user location in bounds if available
       if (userLocation) {
         bounds.extend(userLocation);
       }
-      
+
       map.fitBounds(bounds, { padding: [50, 50] });
     }
   }, [map, mosques, userLocation, prioritizeUserLocation]);
@@ -168,13 +181,13 @@ function FitBounds({
 }
 
 // Component to handle map centering and zooming to user location
-function MapController({ 
-  userLocation, 
-  center, 
+function MapController({
+  userLocation,
+  center,
   zoom,
   prioritizeUserLocation,
-  onMapReady 
-}: { 
+  onMapReady,
+}: {
   userLocation?: [number, number] | null;
   center: [number, number];
   zoom: number;
@@ -204,7 +217,7 @@ function MapController({
 // Create user location icon (blue circle)
 const createUserLocationIcon = () => {
   return L.divIcon({
-    className: 'user-location-marker',
+    className: "user-location-marker",
     html: `
       <div style="
         position: relative;
@@ -232,89 +245,89 @@ const createUserLocationIcon = () => {
   });
 };
 
-export const MosqueMap = forwardRef<MosqueMapRef, MosqueMapProps>(({
-  mosques,
-  center = [3.1390, 101.6869], // Default to KL
-  zoom = 11,
-  onMarkerClick,
-  className = 'h-[500px] w-full rounded-lg',
-  userLocation,
-  prioritizeUserLocation = false,
-}, ref) => {
-  const mapInstanceRef = useRef<L.Map | null>(null);
-
-  useImperativeHandle(ref, () => ({
-    flyToUserLocation: () => {
-      if (userLocation && mapInstanceRef.current) {
-        mapInstanceRef.current.flyTo(userLocation, 15, {
-          animate: true,
-          duration: 1,
-        });
-      }
+export const MosqueMap = forwardRef<MosqueMapRef, MosqueMapProps>(
+  (
+    {
+      mosques,
+      center = [3.139, 101.6869], // Default to KL
+      zoom = 11,
+      onMarkerClick,
+      className = "h-[500px] w-full rounded-lg",
+      userLocation,
+      prioritizeUserLocation = false,
     },
-  }));
+    ref
+  ) => {
+    const mapInstanceRef = useRef<L.Map | null>(null);
 
-  const handleMapReady = (map: L.Map) => {
-    mapInstanceRef.current = map;
-  };
+    useImperativeHandle(ref, () => ({
+      flyToUserLocation: () => {
+        if (userLocation && mapInstanceRef.current) {
+          mapInstanceRef.current.flyTo(userLocation, 15, {
+            animate: true,
+            duration: 1,
+          });
+        }
+      },
+    }));
 
-  if (mosques.length === 0 && !userLocation) {
+    const handleMapReady = (map: L.Map) => {
+      mapInstanceRef.current = map;
+    };
+
+    if (mosques.length === 0 && !userLocation) {
+      return (
+        <div
+          className={`${className} flex items-center justify-center bg-muted rounded-lg`}
+        >
+          <p className="text-muted-foreground">No mosques to display on map</p>
+        </div>
+      );
+    }
+
     return (
-      <div className={`${className} flex items-center justify-center bg-muted rounded-lg`}>
-        <p className="text-muted-foreground">No mosques to display on map</p>
-      </div>
-    );
-  }
-
-  return (
-    <MapContainer
-      center={center}
-      zoom={zoom}
-      className={className}
-      scrollWheelZoom={true}
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-      <MapController
-        userLocation={userLocation}
+      <MapContainer
         center={center}
         zoom={zoom}
-        prioritizeUserLocation={prioritizeUserLocation}
-        onMapReady={handleMapReady}
-      />
-      {/* User location marker */}
-      {userLocation && (
-        <Marker
-          position={userLocation}
-          icon={createUserLocationIcon()}
-        >
-          <Popup>
-            <div className="p-2">
-              <p className="font-semibold text-sm">Your Location</p>
-            </div>
-          </Popup>
-        </Marker>
-      )}
-      {mosques.map((mosque) => (
-        <Marker
-          key={mosque.id}
-          position={[mosque.lat, mosque.lng]}
-        >
-          <Popup>
-            <MosquePopupContent mosque={mosque} />
-          </Popup>
-        </Marker>
-      ))}
-      <FitBounds 
-        mosques={mosques} 
-        userLocation={userLocation}
-        prioritizeUserLocation={prioritizeUserLocation}
-      />
-    </MapContainer>
-  );
-});
+        className={className}
+        scrollWheelZoom={true}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <MapController
+          userLocation={userLocation}
+          center={center}
+          zoom={zoom}
+          prioritizeUserLocation={prioritizeUserLocation}
+          onMapReady={handleMapReady}
+        />
+        {/* User location marker */}
+        {userLocation && (
+          <Marker position={userLocation} icon={createUserLocationIcon()}>
+            <Popup>
+              <div className="p-2">
+                <p className="font-semibold text-sm">Your Location</p>
+              </div>
+            </Popup>
+          </Marker>
+        )}
+        {mosques.map((mosque) => (
+          <Marker key={mosque.id} position={[mosque.lat, mosque.lng]}>
+            <Popup>
+              <MosquePopupContent mosque={mosque} />
+            </Popup>
+          </Marker>
+        ))}
+        <FitBounds
+          mosques={mosques}
+          userLocation={userLocation}
+          prioritizeUserLocation={prioritizeUserLocation}
+        />
+      </MapContainer>
+    );
+  }
+);
 
-MosqueMap.displayName = 'MosqueMap';
-
+MosqueMap.displayName = "MosqueMap";

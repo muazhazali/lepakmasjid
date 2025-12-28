@@ -1,19 +1,19 @@
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
-import { MapPin, Edit, ArrowLeft, Calendar, Clock } from 'lucide-react';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { MosqueMap } from '@/components/Map/MosqueMap';
-import { useMosque } from '@/hooks/use-mosques';
-import { useAuthStore } from '@/stores/auth';
-import { useTranslation } from '@/hooks/use-translation';
-import { useLanguageStore } from '@/stores/language';
-import { SkipLink } from '@/components/SkipLink';
-import { format } from 'date-fns';
-import { getImageUrl } from '@/lib/pocketbase-images';
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
+import { MapPin, Edit, ArrowLeft, Calendar, Clock } from "lucide-react";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { MosqueMap } from "@/components/Map/MosqueMap";
+import { useMosque } from "@/hooks/use-mosques";
+import { useAuthStore } from "@/stores/auth";
+import { useTranslation } from "@/hooks/use-translation";
+import { useLanguageStore } from "@/stores/language";
+import { SkipLink } from "@/components/SkipLink";
+import { format } from "date-fns";
+import { getImageUrl } from "@/lib/pocketbase-images";
 
 const MosqueDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -44,8 +44,12 @@ const MosqueDetail = () => {
         <Header />
         <main id="main-content" className="container-main py-8">
           <div className="text-center py-16">
-            <h1 className="text-2xl font-bold mb-4">{t('mosque_detail.not_found')}</h1>
-            <Button onClick={() => navigate('/explore')}>{t('mosque_detail.back_to_explore')}</Button>
+            <h1 className="text-2xl font-bold mb-4">
+              {t("mosque_detail.not_found")}
+            </h1>
+            <Button onClick={() => navigate("/explore")}>
+              {t("mosque_detail.back_to_explore")}
+            </Button>
           </div>
         </main>
         <Footer />
@@ -53,20 +57,25 @@ const MosqueDetail = () => {
     );
   }
 
-  const displayName = language === 'bm' && mosque.name_bm ? mosque.name_bm : mosque.name;
-  const displayDescription = language === 'bm' && mosque.description_bm 
-    ? mosque.description_bm 
-    : mosque.description;
-  
+  const displayName =
+    language === "bm" && mosque.name_bm ? mosque.name_bm : mosque.name;
+  const displayDescription =
+    language === "bm" && mosque.description_bm
+      ? mosque.description_bm
+      : mosque.description;
+
   // Get image URL for the mosque
-  const imageUrl = getImageUrl(mosque as any, mosque.image);
+  const imageUrl = getImageUrl(mosque, mosque.image);
 
   return (
     <>
       <SkipLink />
       <Helmet>
         <title>{displayName} - lepakmasjid</title>
-        <meta name="description" content={displayDescription || `Information about ${displayName}`} />
+        <meta
+          name="description"
+          content={displayDescription || `Information about ${displayName}`}
+        />
       </Helmet>
 
       <div className="min-h-screen flex flex-col bg-background">
@@ -77,18 +86,18 @@ const MosqueDetail = () => {
             {/* Back button */}
             <Button
               variant="ghost"
-              onClick={() => navigate('/explore')}
+              onClick={() => navigate("/explore")}
               className="mb-6"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
-              {t('common.back')}
+              {t("common.back")}
             </Button>
 
             {/* Image */}
             {imageUrl && (
               <div className="mb-8">
-                <img 
-                  src={imageUrl} 
+                <img
+                  src={imageUrl}
                   alt={displayName}
                   className="w-full h-[400px] object-cover rounded-lg"
                   loading="eager"
@@ -115,7 +124,7 @@ const MosqueDetail = () => {
                     onClick={() => navigate(`/submit?edit=${mosque.id}`)}
                   >
                     <Edit className="mr-2 h-4 w-4" />
-                    {t('mosque.suggest_edit')}
+                    {t("mosque.suggest_edit")}
                   </Button>
                 )}
               </div>
@@ -129,7 +138,9 @@ const MosqueDetail = () => {
 
             {/* Map */}
             <div className="mb-8">
-              <h2 className="font-display text-2xl font-bold mb-4">{t('mosque.location')}</h2>
+              <h2 className="font-display text-2xl font-bold mb-4">
+                {t("mosque.location")}
+              </h2>
               <MosqueMap
                 mosques={[mosque]}
                 center={[mosque.lat, mosque.lng]}
@@ -141,10 +152,13 @@ const MosqueDetail = () => {
             {/* Amenities */}
             {mosque.amenities && mosque.amenities.length > 0 && (
               <div className="mb-8">
-                <h2 className="font-display text-2xl font-bold mb-4">{t('mosque.amenities')}</h2>
+                <h2 className="font-display text-2xl font-bold mb-4">
+                  {t("mosque.amenities")}
+                </h2>
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {mosque.amenities.map((amenity) => {
-                    const label = language === 'bm' ? amenity.label_bm : amenity.label_en;
+                    const label =
+                      language === "bm" ? amenity.label_bm : amenity.label_en;
                     return (
                       <div
                         key={amenity.id}
@@ -152,7 +166,9 @@ const MosqueDetail = () => {
                       >
                         <div className="font-medium mb-1">{label}</div>
                         {amenity.details?.notes && (
-                          <p className="text-sm text-muted-foreground">{amenity.details.notes}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {amenity.details.notes}
+                          </p>
                         )}
                       </div>
                     );
@@ -164,32 +180,42 @@ const MosqueDetail = () => {
             {/* Activities */}
             {mosque.activities && mosque.activities.length > 0 && (
               <div className="mb-8">
-                <h2 className="font-display text-2xl font-bold mb-4">{t('mosque.activities')}</h2>
+                <h2 className="font-display text-2xl font-bold mb-4">
+                  {t("mosque.activities")}
+                </h2>
                 <div className="space-y-4">
                   {mosque.activities.map((activity) => {
-                    const title = language === 'bm' && activity.title_bm 
-                      ? activity.title_bm 
-                      : activity.title;
-                    const description = language === 'bm' && activity.description_bm
-                      ? activity.description_bm
-                      : activity.description;
-                    
+                    const title =
+                      language === "bm" && activity.title_bm
+                        ? activity.title_bm
+                        : activity.title;
+                    const description =
+                      language === "bm" && activity.description_bm
+                        ? activity.description_bm
+                        : activity.description;
+
                     return (
                       <div
                         key={activity.id}
                         className="p-4 rounded-lg border border-border bg-card"
                       >
                         <h3 className="font-semibold text-lg mb-2">{title}</h3>
-                        <p className="text-muted-foreground mb-3">{description}</p>
+                        <p className="text-muted-foreground mb-3">
+                          {description}
+                        </p>
                         <div className="flex items-center gap-4 text-sm text-muted-foreground">
                           <div className="flex items-center gap-1">
                             <Calendar className="h-4 w-4" />
                             <span>
-                              {activity.type === 'one_off' && activity.schedule_json?.date
-                                ? format(new Date(activity.schedule_json.date), 'PPP')
-                                : activity.type === 'recurring'
-                                ? t('mosque_detail.recurring')
-                                : t('mosque_detail.fixed_schedule')}
+                              {activity.type === "one_off" &&
+                              activity.schedule_json?.date
+                                ? format(
+                                    new Date(activity.schedule_json.date),
+                                    "PPP"
+                                  )
+                                : activity.type === "recurring"
+                                  ? t("mosque_detail.recurring")
+                                  : t("mosque_detail.fixed_schedule")}
                             </span>
                           </div>
                           {activity.schedule_json?.time && (
@@ -215,4 +241,3 @@ const MosqueDetail = () => {
 };
 
 export default MosqueDetail;
-
