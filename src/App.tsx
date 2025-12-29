@@ -55,7 +55,7 @@ const App = () => {
               <Route path="/terms" element={<TermsOfUse />} />
               <Route path="/content-policy" element={<ContentPolicy />} />
               <Route path="/auth/callback" element={<AuthCallback />} />
-
+              
               {/* Admin routes */}
               <Route path="/admin" element={<Dashboard />} />
               <Route path="/admin/submissions" element={<Submissions />} />

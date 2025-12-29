@@ -12,6 +12,13 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
     allowedHosts: ["50f4d4b2fdfc.ngrok-free.app"],
+    proxy: {
+      '/sedekah-proxy': {
+        target: 'https://sedekah.je',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/sedekah-proxy/, ''),
+      },
+    },
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),
   resolve: {
