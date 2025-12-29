@@ -226,6 +226,7 @@ export const translations = {
     "footer.privacy_policy": "Privacy Policy",
     "footer.terms_of_use": "Terms of Use",
     "footer.content_policy": "Content Policy",
+    "footer.cool_projects": "Cool Projects",
     "footer.copyright": "Open source under AGPL license.",
     "footer.made_with": "Made with ❤️ by the Malaysian Muslim community",
 
@@ -709,6 +710,7 @@ export const translations = {
     "footer.privacy_policy": "Dasar Privasi",
     "footer.terms_of_use": "Terma Penggunaan",
     "footer.content_policy": "Dasar Kandungan",
+    "footer.cool_projects": "Projek Menarik",
     "footer.copyright": "Sumber terbuka di bawah lesen AGPL.",
     "footer.made_with": "Dibuat dengan ❤️ oleh komuniti Muslim Malaysia",
 

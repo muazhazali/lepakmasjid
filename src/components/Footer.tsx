@@ -7,7 +7,7 @@ const Footer = () => {
   return (
     <footer className="bg-secondary/30 border-t border-border">
       <div className="container-main py-12 lg:py-16">
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
+        <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
           {/* Brand */}
           <div className="lg:col-span-1">
             <Link to="/" className="flex items-center gap-2 mb-4">
@@ -132,6 +132,55 @@ const Footer = () => {
                 >
                   {t("footer.content_policy")}
                 </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* Cool Projects */}
+          <div>
+            <h3 className="font-semibold text-foreground mb-4">
+              {t("footer.cool_projects")}
+            </h3>
+            <ul className="space-y-3">
+              <li>
+                <a
+                  href="https://sedekah.je/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
+                  sedekah.je
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://www.getdoa.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
+                  getdoa.com
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://waktusolat.app/en"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
+                  waktusolat.app
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://pasarmalam.app/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
+                  pasarmalam.app
+                </a>
               </li>
             </ul>
           </div>
