@@ -32,6 +32,7 @@ import { Link } from "react-router-dom";
 import { toast } from "sonner";
 import { X, Upload, Trash2, ExternalLink } from "lucide-react";
 import type { Mosque, MosqueAmenityDetails } from "@/types";
+import { MALAYSIAN_STATES } from "@/types";
 import { mosqueAmenitiesApi } from "@/lib/api";
 import { getImageUrl, validateImageFile } from "@/lib/pocketbase-images";
 
@@ -396,13 +397,23 @@ const Mosques = () => {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="state">{t("mosque.state")}</Label>
-                <Input
-                  id="state"
+                <Select
                   value={editData.state || ""}
-                  onChange={(e) =>
-                    setEditData({ ...editData, state: e.target.value })
+                  onValueChange={(value) =>
+                    setEditData({ ...editData, state: value })
                   }
-                />
+                >
+                  <SelectTrigger id="state">
+                    <SelectValue placeholder={t("submit.state_placeholder")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MALAYSIAN_STATES.map((state) => (
+                      <SelectItem key={state} value={state}>
+                        {state}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="description">

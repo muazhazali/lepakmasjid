@@ -37,13 +37,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { MALAYSIAN_STATES } from "@/types";
 
 const createMosqueSchema = (t: (key: string) => string) =>
   z.object({
     name: z.string().min(2, t("form.name_required")),
     name_bm: z.string().optional(),
     address: z.string().min(5, t("form.address_min")),
-    state: z.string().min(1, t("form.state_required")),
+    state: z.enum(
+      MALAYSIAN_STATES as [string, ...string[]],
+      {
+        required_error: t("form.state_required"),
+      }
+    ),
     lat: z.number().min(-90, t("form.lat_range")).max(90, t("form.lat_range")),
     lng: z
       .number()
@@ -141,6 +147,8 @@ const Submit = () => {
   } = useForm<MosqueFormData>({
     resolver: zodResolver(mosqueSchema),
   });
+
+  const selectedState = watch("state");
 
   // Define handleFormSubmission with useCallback to use in useEffect
   const handleFormSubmission = useCallback(
@@ -609,11 +617,21 @@ const Submit = () => {
 
               <div className="space-y-2">
                 <Label htmlFor="state">{t("submit.state")} *</Label>
-                <Input
-                  id="state"
-                  {...register("state")}
-                  placeholder={t("submit.state_placeholder")}
-                />
+                <Select
+                  value={selectedState || ""}
+                  onValueChange={(value) => setValue("state", value, { shouldValidate: true })}
+                >
+                  <SelectTrigger id="state">
+                    <SelectValue placeholder={t("submit.state_placeholder")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MALAYSIAN_STATES.map((state) => (
+                      <SelectItem key={state} value={state}>
+                        {state}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 {errors.state && (
                   <p className="text-sm text-destructive">
                     {errors.state.message}
