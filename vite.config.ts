@@ -13,10 +13,10 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     allowedHosts: ["50f4d4b2fdfc.ngrok-free.app"],
     proxy: {
-      '/sedekah-proxy': {
-        target: 'https://sedekah.je',
+      '/api/sedekah-proxy': {
+        target: 'https://sedekahjeapi.netlify.app',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/sedekah-proxy/, ''),
+        rewrite: (path) => path.replace(/^\/api\/sedekah-proxy/, '/api/masjid'),
       },
     },
   },

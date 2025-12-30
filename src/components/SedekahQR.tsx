@@ -1,35 +1,40 @@
 import { useEffect, useState } from "react";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardFooter,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ExternalLink } from "lucide-react";
-import { sedekahApi } from "@/lib/sedekahQR";
+import { sedekahApi } from "@/lib/api/sedekahQR";
+import { QRCodeSVG } from "qrcode.react";
+import { AlertCircle, ExternalLink } from "lucide-react";
 
 interface SedekahQRProps {
   masjidName: string;
 }
 
 const SedekahQR: React.FC<SedekahQRProps> = ({ masjidName }) => {
-  const [qrSvg, setQrSvg] = useState<string | null>(null);
+  const [qrValue, setQRValue] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(false);
 
   useEffect(() => {
-    async function fetchQR() {
-      if (!masjidName) return;
+    const slug = masjidName.toLowerCase().trim().replace(/\s+/g, "-");
 
+    async function fetchQR() {
       setIsLoading(true);
       setError(false);
 
       try {
-        const res = await sedekahApi.getQR(masjidName);
-        setQrSvg(res.svg);
+        const data = await sedekahApi.getInstitutions();
+
+        // Find the mosque with matching slug
+        const mosque = data.institutions.find(
+          (inst: any) => inst.slug === slug
+        );
+
+        if (mosque && mosque.qrContent) {
+          setQRValue(mosque.qrContent);
+        } else {
+          setError(true);
+        }
       } catch (err) {
         console.error(err);
         setError(true);
@@ -54,16 +59,19 @@ const SedekahQR: React.FC<SedekahQRProps> = ({ masjidName }) => {
             <Skeleton className="w-full h-full rounded-lg" />
           ) : error ? (
             <div className="flex flex-col items-center text-center gap-2 text-muted-foreground">
-              <ExternalLink className="w-8 h-8 opacity-50" />
+              <AlertCircle className="w-8 h-8 opacity-50" />
               <p className="text-sm font-medium">QR Not Found</p>
               <p className="text-xs">Try searching directly on Sedekah.je</p>
             </div>
           ) : (
-            qrSvg && (
-              <div
-                className="w-full h-full [&>svg]:w-full [&>svg]:h-full"
-                dangerouslySetInnerHTML={{ __html: qrSvg }}
-              />
+            qrValue && (
+              <div className="w-full h-full">
+                <QRCodeSVG
+                  value={qrValue}
+                  className="w-full h-full"
+                  level="H"
+                />
+              </div>
             )
           )}
         </div>

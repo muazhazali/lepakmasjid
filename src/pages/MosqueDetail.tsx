@@ -15,13 +15,12 @@ import { SkipLink } from "@/components/SkipLink";
 import { format } from "date-fns";
 import { getImageUrl } from "@/lib/pocketbase-images";
 import SedekahQR from "@/components/SedekahQR";
-import OpenMapsButton from "./OpenMapsButton";
+import OpenMapsButton from "../components/OpenMapsButton";
 
 const MosqueDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { data: mosque, isLoading } = useMosque(id || null);
-  console.log("mosquedata", mosque);
   const { isAuthenticated } = useAuthStore();
   const { t } = useTranslation();
   const { language } = useLanguageStore();
@@ -155,7 +154,8 @@ const MosqueDetail = () => {
             <OpenMapsButton
               lat={mosque?.lat}
               lng={mosque?.lng}
-            ></OpenMapsButton>
+              className="mb-8 w-full"
+            />
 
             {/* Amenities */}
             {mosque.amenities && mosque.amenities.length > 0 && (
