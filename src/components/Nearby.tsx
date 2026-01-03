@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   UtensilsCrossed,
   ShoppingBag,
@@ -60,15 +60,20 @@ const Nearby: React.FC<NearbyProps> = ({ longitude, latitude }) => {
   const [places, setPlaces] = useState<Place[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [retryAttempt, setRetryAttempt] = useState(0);
   const [showAllRestaurants, setShowAllRestaurants] = useState(false);
   const [showAllMalls, setShowAllMalls] = useState(false);
   const [showAllTransport, setShowAllTransport] = useState(false);
 
-  useEffect(() => {
-    const fetchOSM = async () => {
-      try {
-        setIsLoading(true);
+  const fetchOSM = useCallback(async (attempt: number = 0): Promise<void> => {
+    const MAX_RETRIES = 3;
+    
+    try {
+      setIsLoading(true);
+      setRetryAttempt(attempt);
+      if (attempt === 0) {
         setError(null);
+      }
 
         const query = `
 [out:json];
@@ -106,8 +111,19 @@ out center tags;
 
         const res = await fetch(url);
         
+        // Retry on 504 (Gateway Timeout) or 503 (Service Unavailable) errors
+        if (!res.ok && (res.status === 504 || res.status === 503)) {
+          if (attempt < MAX_RETRIES) {
+            const delay = Math.min(1000 * Math.pow(2, attempt), 5000); // Exponential backoff, max 5s
+            await new Promise((resolve) => setTimeout(resolve, delay));
+            return fetchOSM(attempt + 1);
+          } else {
+            throw new Error(`Service temporarily unavailable. Please try again later.`);
+          }
+        }
+        
         if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
+          throw new Error(`Failed to load nearby places (${res.status})`);
         }
         
         const data = await res.json();
@@ -171,24 +187,26 @@ out center tags;
           .sort((a, b) => a.distance - b.distance); // Sort by nearest first
 
         setPlaces(placesWithDistance);
+        setRetryAttempt(0); // Reset retry count on success
 
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to load nearby places";
+      setError(errorMessage);
+      console.error("Error fetching nearby places:", err);
+      setRetryAttempt(0); // Reset retry count on final failure
+    } finally {
+      setIsLoading(false);
+    }
+  }, [latitude, longitude]);
 
-      } catch (err) {
-        setError("Failed to load nearby places");
-        console.error("Error fetching nearby places:", err);
-      } finally {
-        setIsLoading(false);
-      }
-
-    };
-    
+  useEffect(() => {
     if (typeof longitude === "number" && typeof latitude === "number" && !isNaN(longitude) && !isNaN(latitude)) {
       fetchOSM();
     } else {
       setIsLoading(false);
       setError("Invalid coordinates");
     }
-  }, [longitude, latitude]);
+  }, [longitude, latitude, fetchOSM]);
 
   const restaurants = places.filter((p) => p.type === "restaurant");
   const malls = places.filter((p) => p.type === "mall");
@@ -201,6 +219,11 @@ out center tags;
           <CardTitle className="text-xl">Nearby Places</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
+          {retryAttempt > 0 && (
+            <div className="text-sm text-muted-foreground text-center py-2">
+              Retrying... (Attempt {retryAttempt + 1} of 4)
+            </div>
+          )}
           <Skeleton className="h-20 w-full" />
           <Skeleton className="h-20 w-full" />
           <Skeleton className="h-20 w-full" />
@@ -215,8 +238,16 @@ out center tags;
         <CardHeader>
           <CardTitle className="text-xl">Nearby Places</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">{error}</p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => fetchOSM()}
+            className="w-full"
+          >
+            Try Again
+          </Button>
         </CardContent>
       </Card>
     );
