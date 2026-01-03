@@ -1,7 +1,7 @@
 /**
  * Test PocketBase Connection
  * 
- * This script tests the connection to pb.muazhazali.me
+ * This script tests the connection to pb.muaz.app
  * Run with: node scripts/test-connection.js
  */
 
@@ -18,7 +18,7 @@ const __dirname = dirname(__filename);
 config({ path: join(__dirname, '../.env.local') });
 config({ path: join(__dirname, '../.env') });
 
-const POCKETBASE_URL = process.env.VITE_POCKETBASE_URL || 'https://pb.muazhazali.me';
+const POCKETBASE_URL = process.env.VITE_POCKETBASE_URL || 'https://pb.muaz.app';
 
 console.log('🔍 Testing PocketBase Connection...\n');
 console.log(`📍 URL: ${POCKETBASE_URL}\n`);

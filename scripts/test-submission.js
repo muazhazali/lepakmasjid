@@ -20,7 +20,7 @@ const __dirname = dirname(__filename);
 config({ path: join(__dirname, '../.env.local') });
 config({ path: join(__dirname, '../.env') });
 
-const POCKETBASE_URL = process.env.VITE_POCKETBASE_URL || 'https://pb.muazhazali.me';
+const POCKETBASE_URL = process.env.VITE_POCKETBASE_URL || 'https://pb.muaz.app';
 
 const rl = readline.createInterface({
   input: process.stdin,

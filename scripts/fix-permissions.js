@@ -8,7 +8,7 @@
  *   node scripts/fix-permissions.js
  * 
  * Environment Variables:
- *   VITE_POCKETBASE_URL - PocketBase instance URL (default: https://pb.muazhazali.me)
+ *   VITE_POCKETBASE_URL - PocketBase instance URL (default: https://pb.muaz.app)
  *   POCKETBASE_ADMIN_EMAIL - Admin email for authentication
  *   POCKETBASE_ADMIN_PASSWORD - Admin password for authentication
  * 
@@ -28,7 +28,7 @@ const __dirname = dirname(__filename);
 config({ path: join(__dirname, '../.env.local') });
 config({ path: join(__dirname, '../.env') });
 
-const POCKETBASE_URL = process.env.VITE_POCKETBASE_URL || 'https://pb.muazhazali.me';
+const POCKETBASE_URL = process.env.VITE_POCKETBASE_URL || 'https://pb.muaz.app';
 
 // Create readline interface for prompts
 const rl = readline.createInterface({

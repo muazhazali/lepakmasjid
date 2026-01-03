@@ -77,11 +77,11 @@ pnpm install
 Create a `.env.local` file in the root directory:
 
 ```env
-VITE_POCKETBASE_URL=https://pb.muazhazali.me
+VITE_POCKETBASE_URL=https://pb.muaz.app
 VITE_APP_URL=http://localhost:8080
 ```
 
-The app connects to PocketBase at `pb.muazhazali.me` by default. You can override this with the `VITE_POCKETBASE_URL` environment variable.
+The app connects to PocketBase at `pb.muaz.app` by default. You can override this with the `VITE_POCKETBASE_URL` environment variable.
 
 ### 4. Start the development server
 
@@ -354,7 +354,7 @@ The application uses PocketBase as the backend with the following collection str
 
 | Variable              | Description                           | Default                    |
 | --------------------- | ------------------------------------- | -------------------------- |
-| `VITE_POCKETBASE_URL` | PocketBase instance URL               | `https://pb.muazhazali.me` |
+| `VITE_POCKETBASE_URL` | PocketBase instance URL               | `https://pb.muaz.app` |
 | `VITE_APP_URL`        | Application URL (for OAuth redirects) | `http://localhost:8080`    |
 
 ## Available Scripts
@@ -387,7 +387,7 @@ The application uses PocketBase as the backend with the following collection str
 
 ## PocketBase Setup
 
-The application connects to a deployed PocketBase instance at `pb.muazhazali.me`.
+The application connects to a deployed PocketBase instance at `pb.muaz.app`.
 
 ### Quick Setup
 
