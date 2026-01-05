@@ -5,6 +5,7 @@ export interface Mosque {
   name: string;
   name_bm?: string;
   address: string;
+  contact?: string;
   state: string;
   lat: number;
   lng: number;

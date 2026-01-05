@@ -44,6 +44,7 @@ const createMosqueSchema = (t: (key: string) => string) =>
     name: z.string().min(2, t("form.name_required")),
     name_bm: z.string().optional(),
     address: z.string().min(5, t("form.address_min")),
+    contact: z.string().optional(),
     state: z.enum(
       MALAYSIAN_STATES as [string, ...string[]],
       {
@@ -256,6 +257,7 @@ const Submit = () => {
       setValue("name", existingMosque.name);
       setValue("name_bm", existingMosque.name_bm || "");
       setValue("address", existingMosque.address);
+      setValue("contact", existingMosque.contact || "");
       setValue("state", existingMosque.state);
       setValue("lat", existingMosque.lat);
       setValue("lng", existingMosque.lng);
@@ -611,6 +613,20 @@ const Submit = () => {
                 {errors.address && (
                   <p className="text-sm text-destructive">
                     {errors.address.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="contact">{t("submit.contact")}</Label>
+                <Input
+                  id="contact"
+                  {...register("contact")}
+                  placeholder="e.g., 03-9105 3524"
+                />
+                {errors.contact && (
+                  <p className="text-sm text-destructive">
+                    {errors.contact.message}
                   </p>
                 )}
               </div>

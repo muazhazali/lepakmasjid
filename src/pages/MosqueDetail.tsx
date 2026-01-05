@@ -121,6 +121,12 @@ const MosqueDetail = () => {
                     <MapPin className="h-4 w-4" />
                     <span>{mosque.address}</span>
                   </div>
+                  {mosque.contact && (
+                    <div className="flex items-center gap-2 text-muted-foreground mb-4">
+                      <span className="font-medium">{t("mosque.contact")}:</span>
+                      <span>{mosque.contact}</span>
+                    </div>
+                  )}
                   <Badge variant="secondary">{mosque.state}</Badge>
                 </div>
                 {isAuthenticated && (

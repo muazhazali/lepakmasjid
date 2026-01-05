@@ -181,6 +181,7 @@ export const submissionsApi = {
       "name",
       "name_bm",
       "address",
+      "contact",
       "state",
       "lat",
       "lng",
