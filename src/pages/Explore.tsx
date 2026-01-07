@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { Helmet } from "react-helmet-async";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Filter, Grid, List, MapIcon, Map as MapIcon2, Plus } from "lucide-react";
@@ -33,6 +33,7 @@ const Explore = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
 
   // Read from URL params
   const searchQuery = searchParams.get("q") || "";
@@ -70,26 +71,19 @@ const Explore = () => {
     localStorage.setItem(VIEW_MODE_STORAGE_KEY, viewMode);
   }, [viewMode]);
 
-  // Save scroll position before navigating away
+  // Scroll to content area when page changes
   useEffect(() => {
-    const handleScroll = () => {
-      sessionStorage.setItem('explore-scroll', window.scrollY.toString());
-    };
-    
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    if (contentRef.current) {
+      const headerOffset = 80; // Offset to account for any fixed headers
+      const elementPosition = contentRef.current.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
 
-  // Restore scroll position when returning to page
-  useEffect(() => {
-    const savedScroll = sessionStorage.getItem('explore-scroll');
-    if (savedScroll) {
-      // Small delay to ensure content is rendered
-      setTimeout(() => {
-        window.scrollTo({ top: parseInt(savedScroll, 10), behavior: 'smooth' });
-      }, 100);
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
     }
-  }, []);
+  }, [currentPage]);
 
   const filters: MosqueFilters = useMemo(
     () => ({
@@ -221,7 +215,7 @@ const Explore = () => {
             </div>
           </div>
 
-          <div className="container-main py-8">
+          <div ref={contentRef} className="container-main py-8">
             <div className="flex gap-8">
               {/* Sidebar */}
               <FilterSidebar
