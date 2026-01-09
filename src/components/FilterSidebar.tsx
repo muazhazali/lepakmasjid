@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
-import { X, MapPin, Search } from "lucide-react";
+import { useState } from "react";
+import { X, MapPin, Search, Loader2 } from "lucide-react";
 import { MALAYSIAN_STATES } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -16,6 +17,7 @@ import {
 import { useAmenities } from "@/hooks/use-amenities";
 import { useTranslation } from "@/hooks/use-translation";
 import { useLanguageStore } from "@/stores/language";
+import type { UserLocation } from "@/components/NearMe";
 import * as LucideIcons from "lucide-react";
 
 interface FilterSidebarProps {
@@ -28,6 +30,12 @@ interface FilterSidebarProps {
   onClose: () => void;
   sortBy?: "nearest" | "most_amenities" | "alphabetical";
   onSortChange?: (sort: "nearest" | "most_amenities" | "alphabetical") => void;
+  // Near Me props
+  nearMeEnabled?: boolean;
+  onNearMeToggle?: (enabled: boolean) => void;
+  userLocation?: UserLocation | null;
+  isLoadingLocation?: boolean;
+  locationError?: string | null;
   distance?: number;
   onDistanceChange?: (distance: number) => void;
 }
@@ -42,7 +50,13 @@ const FilterSidebar = ({
   onClose,
   sortBy = "alphabetical",
   onSortChange,
-  distance = 50,
+  // Near Me props
+  nearMeEnabled = false,
+  onNearMeToggle,
+  userLocation,
+  isLoadingLocation = false,
+  locationError,
+  distance = 10,
   onDistanceChange,
 }: FilterSidebarProps) => {
   const {
@@ -52,28 +66,7 @@ const FilterSidebar = ({
   } = useAmenities();
   const { t } = useTranslation();
   const { language } = useLanguageStore();
-  const [userLocation, setUserLocation] = useState<{
-    lat: number;
-    lng: number;
-  } | null>(null);
   const [amenitySearchQuery, setAmenitySearchQuery] = useState("");
-
-  useEffect(() => {
-    // Try to get user location for distance filter
-    if (navigator.geolocation && onDistanceChange) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          });
-        },
-        () => {
-          // User denied or error
-        }
-      );
-    }
-  }, [onDistanceChange]);
 
   const handleAmenityToggle = (amenityId: string) => {
     if (selectedAmenities.includes(amenityId)) {
@@ -84,7 +77,7 @@ const FilterSidebar = ({
   };
 
   const hasActiveFilters =
-    (selectedState && selectedState !== "all") || selectedAmenities.length > 0;
+    (selectedState && selectedState !== "all") || selectedAmenities.length > 0 || nearMeEnabled;
 
   // Filter amenities based on search query
   const filteredAmenities = amenities.filter((amenity) => {
@@ -174,7 +167,7 @@ const FilterSidebar = ({
           {hasActiveFilters && (
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">
-                {selectedAmenities.length + (selectedState ? 1 : 0)}{" "}
+                {selectedAmenities.length + (selectedState ? 1 : 0) + (nearMeEnabled ? 1 : 0)}{" "}
                 {t("common.filter")}
               </span>
               <Button
@@ -205,7 +198,7 @@ const FilterSidebar = ({
                   <SelectItem value="most_amenities">
                     {t("filter.sort.most_amenities")}
                   </SelectItem>
-                  {userLocation && (
+                  {nearMeEnabled && userLocation && (
                     <SelectItem value="nearest">
                       {t("filter.sort.nearest")}
                     </SelectItem>
@@ -240,20 +233,64 @@ const FilterSidebar = ({
             </Select>
           </div>
 
-          {/* Distance filter */}
-          {onDistanceChange && userLocation && (
+          {/* Near Me filter */}
+          {onNearMeToggle && onDistanceChange && (
             <div className="space-y-3">
-              <Label className="text-base font-semibold">
-                {t("filter.distance")} ({distance} km)
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {isLoadingLocation && (
+                    <Loader2 className="h-4 w-4 text-primary animate-spin" />
+                  )}
+                  <Label htmlFor="near-me-toggle" className="text-base font-semibold cursor-pointer">
+                    {t("filter.near_me")}
+                  </Label>
+                </div>
+                <Switch
+                  id="near-me-toggle"
+                  checked={nearMeEnabled}
+                  onCheckedChange={onNearMeToggle}
+                  disabled={isLoadingLocation}
+                />
+              </div>
+
+              {/* Loading state */}
+              {isLoadingLocation && (
+                <div className="text-sm text-muted-foreground">
+                  {t("filter.getting_location")}
+                </div>
+              )}
+
+              {/* Error state */}
+              {locationError && nearMeEnabled && (
+                <div className="text-sm text-destructive p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                  {locationError}
+                </div>
+              )}
+
+              {/* Distance slider - always visible */}
+              <div className="space-y-3 p-3 rounded-lg border border-border">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium text-muted-foreground">
+                    {t("filter.distance")}
               </Label>
+                  <span className={`text-sm font-semibold ${nearMeEnabled && userLocation ? "text-primary" : "text-muted-foreground"}`}>
+                    {distance} km
+                  </span>
+                </div>
               <Slider
                 value={[distance]}
                 onValueChange={([value]) => onDistanceChange(value)}
                 min={1}
-                max={100}
+                  max={50}
                 step={1}
                 className="w-full"
+                  disabled={!nearMeEnabled || !userLocation}
               />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>1 km</span>
+                  <span>50 km</span>
+                </div>
+              </div>
             </div>
           )}
 

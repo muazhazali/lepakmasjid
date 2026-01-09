@@ -7,7 +7,8 @@ import { Badge } from "@/components/ui/badge";
 import { useLanguageStore } from "@/stores/language";
 import { useNavigate } from "react-router-dom";
 import * as LucideIcons from "lucide-react";
-import { MapPin } from "lucide-react";
+import { MapPin, Navigation } from "lucide-react";
+import { calculateDistance } from "@/lib/utils";
 import "leaflet/dist/leaflet.css";
 
 // Fix for default marker icons in React-Leaflet
@@ -33,12 +34,17 @@ interface MosqueMapProps {
 }
 
 // Component to render mosque popup content
-function MosquePopupContent({ mosque }: { mosque: Mosque }) {
+function MosquePopupContent({ mosque, userLocation }: { mosque: Mosque; userLocation?: [number, number] | null }) {
   const navigate = useNavigate();
   const { language } = useLanguageStore();
 
   const displayName =
     language === "bm" && mosque.name_bm ? mosque.name_bm : mosque.name;
+
+  // Calculate distance if user location is available
+  const distance = userLocation
+    ? calculateDistance(userLocation[0], userLocation[1], mosque.lat, mosque.lng)
+    : null;
 
   // Get icon component dynamically (same logic as MosqueCard)
   const getIcon = (iconName: string) => {
@@ -91,7 +97,20 @@ function MosquePopupContent({ mosque }: { mosque: Mosque }) {
 
   return (
     <div className="p-3 min-w-[200px] max-w-[280px]">
-      <h3 className="font-semibold text-base mb-1.5">{displayName}</h3>
+      <div className="flex items-start justify-between gap-2 mb-1.5">
+        <h3 className="font-semibold text-base">{displayName}</h3>
+        {distance !== null && (
+          <Badge
+            variant="secondary"
+            className="bg-primary/90 text-primary-foreground flex items-center gap-1 flex-shrink-0"
+          >
+            <Navigation className="h-3 w-3" />
+            <span className="text-xs">
+              {distance < 1 ? `${(distance * 1000).toFixed(0)}m` : `${distance.toFixed(1)}km`}
+            </span>
+          </Badge>
+        )}
+      </div>
       <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
         {mosque.address}
       </p>
@@ -316,7 +335,7 @@ export const MosqueMap = forwardRef<MosqueMapRef, MosqueMapProps>(
         {mosques.map((mosque) => (
           <Marker key={mosque.id} position={[mosque.lat, mosque.lng]}>
             <Popup>
-              <MosquePopupContent mosque={mosque} />
+              <MosquePopupContent mosque={mosque} userLocation={userLocation} />
             </Popup>
           </Marker>
         ))}

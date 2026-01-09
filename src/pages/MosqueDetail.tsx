@@ -1,6 +1,6 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { MapPin, Edit, ArrowLeft, Calendar, Clock, Phone, Copy, Check } from "lucide-react";
+import { MapPin, Edit, ArrowLeft, Calendar, Clock, Phone, Copy, Check, Navigation } from "lucide-react";
 import { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -19,6 +19,8 @@ import SedekahQR from "@/components/SedekahQR";
 import OpenMapsButton from "../components/OpenMapsButton";
 import Nearby from "@/components/Nearby";
 import { toast } from "sonner";
+import { useNearMe } from "@/components/NearMe";
+import { calculateDistance } from "@/lib/utils";
 
 const MosqueDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -28,6 +30,12 @@ const MosqueDetail = () => {
   const { t } = useTranslation();
   const { language } = useLanguageStore();
   const [copied, setCopied] = useState(false);
+  const { location: userLocation } = useNearMe();
+
+  // Calculate distance if user location is available
+  const distance = userLocation && mosque
+    ? calculateDistance(userLocation.lat, userLocation.lng, mosque.lat, mosque.lng)
+    : undefined;
 
   const handleCopyContact = async () => {
     if (mosque?.contact) {
@@ -167,7 +175,22 @@ const MosqueDetail = () => {
                       </Button>
                     </div>
                   )}
-                  <Badge variant="secondary">{mosque.state}</Badge>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary">{mosque.state}</Badge>
+                    {distance !== undefined && (
+                      <Badge
+                        variant="secondary"
+                        className="bg-primary/90 text-primary-foreground flex items-center gap-1"
+                      >
+                        <Navigation className="h-3 w-3" />
+                        <span>
+                          {distance < 1
+                            ? `${(distance * 1000).toFixed(0)}m`
+                            : `${distance.toFixed(1)}km`}
+                        </span>
+                      </Badge>
+                    )}
+                  </div>
                 </div>
                 {isAuthenticated && (
                   <Button
@@ -199,6 +222,7 @@ const MosqueDetail = () => {
                     center={[mosque.lat, mosque.lng]}
                     zoom={15}
                     className="h-[400px] w-full rounded-lg"
+                    userLocation={userLocation}
                   />
                   <OpenMapsButton
                     lat={mosque?.lat}
