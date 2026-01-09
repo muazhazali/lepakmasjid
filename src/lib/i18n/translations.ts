@@ -232,6 +232,7 @@ export const translations = {
     "footer.api_docs": "API Documentation",
     "footer.contribution_guide": "Contribution Guide",
     "footer.github_repo": "GitHub Repository",
+    "footer.web_analytics": "Web Analytics",
     "footer.legal": "Legal",
     "footer.privacy_policy": "Privacy Policy",
     "footer.terms_of_use": "Terms of Use",
@@ -279,6 +280,8 @@ export const translations = {
     "filter.loading_amenities": "Loading amenities...",
     "filter.error_amenities": "Failed to load amenities",
     "filter.no_amenities": "No amenities available",
+    "filter.search_amenities": "Search amenities...",
+    "filter.no_amenities_found": "No amenities found",
 
     // Admin (continued)
     "admin.no_audit_logs": "No audit logs",
@@ -726,6 +729,7 @@ export const translations = {
     "footer.api_docs": "Dokumentasi API",
     "footer.contribution_guide": "Panduan Sumbangan",
     "footer.github_repo": "Repositori GitHub",
+    "footer.web_analytics": "Analitik Web",
     "footer.legal": "Undang-undang",
     "footer.privacy_policy": "Dasar Privasi",
     "footer.terms_of_use": "Terma Penggunaan",
@@ -773,6 +777,8 @@ export const translations = {
     "filter.loading_amenities": "Memuatkan kemudahan...",
     "filter.error_amenities": "Gagal memuatkan kemudahan",
     "filter.no_amenities": "Tiada kemudahan tersedia",
+    "filter.search_amenities": "Cari kemudahan...",
+    "filter.no_amenities_found": "Tiada kemudahan dijumpai",
 
     // Admin
     "admin.no_pending_submissions": "Tiada penyerahan menunggu",

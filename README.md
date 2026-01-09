@@ -19,6 +19,11 @@ A community-maintained, searchable directory of mosques in Malaysia focused on f
 - 📝 **Submission Workflow**: Structured submission system with approval/rejection workflow
 - 📈 **Analytics Dashboard**: Admin dashboard with statistics and insights
 
+## Analytics
+
+View our public web analytics dashboard: [https://umami.muaz.app/share/vH9QwmwSuIv2mDiu](https://umami.muaz.app/share/vH9QwmwSuIv2mDiu)
+
+
 ## Tech Stack
 
 ### Frontend
@@ -203,152 +208,19 @@ lepakmasjid/
 └── package.json          # Dependencies and scripts
 ```
 
-## Data Structure
+## Database Schema
 
-The application uses PocketBase as the backend with the following collection structure:
+The application uses PocketBase as the backend with 7 collections managing users, mosques, amenities, activities, submissions, and audit logs.
 
-### 1. Users (`users`)
+For comprehensive database documentation including:
+- Detailed field specifications and types
+- Access rules and permissions
+- Indexes and performance optimization
+- Relationships and entity diagrams
+- API examples and usage patterns
+- Security and validation rules
 
-**Type**: Auth (built-in authentication collection)  
-**Purpose**: Stores authenticated users with optional roles (user or admin).
-
-**Key Fields**:
-
-- `id` (15-char auto-generated text, primary key)
-- `email`, `password`, `verified`, `name`, `avatar`
-- `role` (optional: `user` or `admin`)
-- `tokenKey` for session/auth management
-
-**Rules**:
-
-- Users can only view/edit/delete their own records unless they are admins
-
-**Auth Features**:
-
-- Email/password login enabled
-- OAuth2 mapping for name and avatar
-- Email verification, password reset, and email change workflows configured
-- Login alerts for new locations
-
-### 2. Mosques (`mosques`)
-
-**Type**: Base  
-**Purpose**: Stores information about mosques.
-
-**Key Fields**:
-
-- `name`, `name_bm` (Malay), `address`, `state`
-- `lat`, `lng` (geolocation)
-- `description` (English & Malay)
-- `status`: `pending` | `approved` | `rejected`
-- `created_by` (relation to user)
-- `image` (file upload)
-
-**Rules**:
-
-- Publicly visible only if `status = "approved"`
-- Authenticated users can create/update/delete (including unapproved entries)
-
-**Indexes**: Optimized for state, status, and geolocation queries
-
-### 3. Amenities (`amenities`)
-
-**Type**: Base  
-**Purpose**: Catalog of standardized amenities (e.g., wheelchair access, parking).
-
-**Key Fields**:
-
-- `key` (unique string identifier, e.g., `wheelchair`)
-- `label_en`, `label_bm` (display names)
-- `icon` (optional icon name or URL)
-- `order` (for UI sorting)
-
-**Constraints**:
-
-- `key` must be unique
-
-**Usage**: Referenced by `mosque_amenities` to associate amenities with mosques
-
-### 4. Mosque Amenities (`mosque_amenities`)
-
-**Type**: Base (join table)  
-**Purpose**: Links mosques to amenities with optional verification and details.
-
-**Key Fields**:
-
-- `mosque_id` → `mosques`
-- `amenity_id` → `amenities`
-- `details` (JSON for extra info, e.g., capacity, notes)
-- `verified` (boolean)
-
-**Indexes**: Optimized for lookups by mosque or amenity
-
-### 5. Activities (`activities`)
-
-**Type**: Base  
-**Purpose**: Represents scheduled events or programs at mosques.
-
-**Key Fields**:
-
-- `title` / `title_bm`, `description` / `description_bm`
-- `type`: `one_off` | `recurring` | `fixed`
-- `schedule_json` (structured JSON for timing rules)
-- `start_date`, `end_date` (optional)
-- `status`: `active` | `cancelled`
-- `mosque_id` → `mosques`
-- `created_by` → `users`
-
-**Rules**:
-
-- Authenticated users can create
-- Only the creator can update/delete
-
-**Indexes**: By mosque and status
-
-### 6. Submissions (`submissions`)
-
-**Type**: Base  
-**Purpose**: Tracks user-submitted changes (e.g., new mosque or edits).
-
-**Key Fields**:
-
-- `type`: `new_mosque` | `edit_mosque`
-- `mosque_id` (only set for edits)
-- `data` (JSON payload of proposed changes)
-- `status`: `pending` | `approved` | `rejected`
-- `submitted_by`, `reviewed_by` (user relations)
-- `submitted_at`, `reviewed_at`
-- `rejection_reason`, `image` (supporting media)
-
-**Workflow**:
-
-- Users submit → admins review → approve/reject
-
-**Indexes**: For status, submitter, and timestamp
-
-### 7. Audit Logs (`audit_logs`)
-
-**Type**: Base  
-**Purpose**: Immutable log of administrative or sensitive actions.
-
-**Access**: Only visible to admins
-
-**Key Fields**:
-
-- `actor_id` → user who performed action
-- `action` (e.g., `"mosque.updated"`)
-- `entity_type`, `entity_id` (what was changed)
-- `before` / `after` (JSON snapshots of data)
-- `timestamp`, `ip_address`, `user_agent`
-
-**Indexes**: Optimized for actor, entity, and time-based queries
-
-### Summary of Relationships
-
-- **Users** create mosques, activities, and submissions
-- **Mosques** have many amenities (via `mosque_amenities`)
-- **Submissions** propose changes to mosques
-- **Audit logs** track changes to any entity by authorized users
+See **[DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md)**
 
 ## Environment Variables
 

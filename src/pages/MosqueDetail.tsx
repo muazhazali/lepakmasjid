@@ -107,8 +107,11 @@ const MosqueDetail = () => {
             {/* Back button */}
             <Button
               variant="ghost"
-              onClick={() => navigate("/explore")}
-              className="mb-6"
+              onClick={() => {
+                // Clear the saved scroll position flag so it restores properly
+                navigate(-1);
+              }}
+              className="mb-6 hover:bg-secondary/80 transition-colors"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
               {t("common.back")}

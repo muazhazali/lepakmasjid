@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { X, MapPin } from "lucide-react";
+import { X, MapPin, Search } from "lucide-react";
 import { MALAYSIAN_STATES } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
+import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -55,6 +56,7 @@ const FilterSidebar = ({
     lat: number;
     lng: number;
   } | null>(null);
+  const [amenitySearchQuery, setAmenitySearchQuery] = useState("");
 
   useEffect(() => {
     // Try to get user location for distance filter
@@ -83,6 +85,17 @@ const FilterSidebar = ({
 
   const hasActiveFilters =
     (selectedState && selectedState !== "all") || selectedAmenities.length > 0;
+
+  // Filter amenities based on search query
+  const filteredAmenities = amenities.filter((amenity) => {
+    if (!amenitySearchQuery.trim()) return true;
+    
+    const query = amenitySearchQuery.toLowerCase();
+    const labelEn = amenity.label_en.toLowerCase();
+    const labelBm = amenity.label_bm.toLowerCase();
+    
+    return labelEn.includes(query) || labelBm.includes(query);
+  });
 
   // Get icon component dynamically
   // Convert icon name to PascalCase and handle special cases
@@ -249,6 +262,21 @@ const FilterSidebar = ({
             <Label className="text-base font-semibold">
               {t("filter.amenities")}
             </Label>
+            
+            {/* Search input for amenities */}
+            {!amenitiesLoading && !amenitiesError && amenities.length > 0 && (
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder={t("filter.search_amenities") || "Search amenities..."}
+                  value={amenitySearchQuery}
+                  onChange={(e) => setAmenitySearchQuery(e.target.value)}
+                  className="pl-9 h-10"
+                />
+              </div>
+            )}
+            
             {amenitiesLoading ? (
               <div className="text-sm text-muted-foreground">
                 {t("filter.loading_amenities")}
@@ -263,9 +291,13 @@ const FilterSidebar = ({
               <div className="text-sm text-muted-foreground">
                 {t("filter.no_amenities")}
               </div>
+            ) : filteredAmenities.length === 0 ? (
+              <div className="text-sm text-muted-foreground p-3 text-center">
+                {t("filter.no_amenities_found") || "No amenities found"}
+              </div>
             ) : (
-              <div className="space-y-2 max-h-96 overflow-y-auto">
-                {amenities.map((amenity) => {
+              <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
+                {filteredAmenities.map((amenity) => {
                   const IconComponent = getIcon(amenity.icon);
                   const isChecked = selectedAmenities.includes(amenity.id);
                   const label =
@@ -284,12 +316,12 @@ const FilterSidebar = ({
                         onCheckedChange={() => handleAmenityToggle(amenity.id)}
                         className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                       />
-                      <div className="flex items-center gap-2 flex-1">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
                         <IconComponent
-                          className={`h-4 w-4 ${isChecked ? "text-primary" : "text-muted-foreground"}`}
+                          className={`h-4 w-4 flex-shrink-0 ${isChecked ? "text-primary" : "text-muted-foreground"}`}
                         />
                         <span
-                          className={`text-sm font-medium ${isChecked ? "text-foreground" : "text-muted-foreground"}`}
+                          className={`text-sm font-medium break-words ${isChecked ? "text-foreground" : "text-muted-foreground"}`}
                         >
                           {label}
                         </span>

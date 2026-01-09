@@ -100,6 +100,16 @@ const Footer = () => {
                   {t("footer.github_repo")}
                 </a>
               </li>
+              <li>
+                <a
+                  href="https://umami.muaz.app/share/vH9QwmwSuIv2mDiu"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-primary transition-colors"
+                >
+                  {t("footer.web_analytics")}
+                </a>
+              </li>
             </ul>
           </div>
 
