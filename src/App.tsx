@@ -22,6 +22,7 @@ import Mosques from "./pages/Admin/Mosques";
 import Users from "./pages/Admin/Users";
 import AuditLog from "./pages/Admin/AuditLog";
 import NotFound from "./pages/NotFound";
+import TripPlanner from "./pages/TripPlanner";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -62,6 +63,9 @@ const App = () => {
               <Route path="/admin/mosques" element={<Mosques />} />
               <Route path="/admin/users" element={<Users />} />
               <Route path="/admin/audit" element={<AuditLog />} />
+              
+              {/* Public features */}
+              <Route path="/trip-planner" element={<TripPlanner />} />
 
               {/* Catch-all */}
               <Route path="*" element={<NotFound />} />
