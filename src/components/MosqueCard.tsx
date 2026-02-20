@@ -1,4 +1,4 @@
-import { MapPin } from "lucide-react";
+import { MapPin, Navigation } from "lucide-react";
 import { Link } from "react-router-dom";
 import type { Mosque } from "@/types";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +8,7 @@ import * as LucideIcons from "lucide-react";
 import { getImageUrl } from "@/lib/pocketbase-images";
 
 interface MosqueCardProps {
-  mosque: Mosque;
+  mosque: Mosque & { distance?: number };
   onClick?: () => void;
   viewMode?: "grid" | "list";
 }
@@ -130,13 +130,25 @@ const MosqueCard = ({
               </div>
             </div>
           )}
-          {/* State badge */}
+          {/* State badge - top left */}
           <Badge
             variant="secondary"
-            className="absolute top-3 left-3 bg-background/90 backdrop-blur-sm"
+            className={`absolute top-2 left-2 bg-background/90 backdrop-blur-sm ${isListView ? "text-xs px-1.5 py-0.5" : ""}`}
           >
             {mosque.state.replace("Wilayah Persekutuan ", "WP ")}
           </Badge>
+          {/* Distance badge - bottom left */}
+          {mosque.distance !== undefined && (
+            <Badge
+              variant="secondary"
+              className={`absolute bottom-2 left-2 bg-primary/90 text-primary-foreground backdrop-blur-sm flex items-center gap-1 ${
+                isListView ? "text-xs px-1.5 py-0.5" : ""
+              }`}
+            >
+              <Navigation className={isListView ? "h-2.5 w-2.5" : "h-3 w-3"} />
+              <span>{mosque.distance < 1 ? `${(mosque.distance * 1000).toFixed(0)}m` : `${mosque.distance.toFixed(1)}km`}</span>
+            </Badge>
+          )}
         </div>
 
         {/* Content */}

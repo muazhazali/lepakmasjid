@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
-    allowedHosts: ["50f4d4b2fdfc.ngrok-free.app"],
+    allowedHosts: ["50f4d4b2fdfc.ngrok-free.app", "lepakmasjid.hrzhkm.xyz"],
     proxy: {
       '/api/sedekah-proxy': {
         target: 'https://sedekahjeapi.netlify.app',

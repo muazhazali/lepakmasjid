@@ -77,6 +77,23 @@ export const translations = {
     "filter.sort.nearest": "Nearest",
     "filter.sort.most_amenities": "Most Amenities",
     "filter.sort.alphabetical": "Alphabetical",
+    // Near Me
+    "filter.near_me": "Nearby",
+    "filter.enable_location": "Enable location",
+    "filter.location_denied": "Location access denied",
+    "filter.getting_location": "Getting your location...",
+    "filter.within_radius": "within {distance} km",
+
+    // Location Permission Dialog
+    "location.dialog_title": "Enable Location Services",
+    "location.dialog_description": "Allow LepakMasjid to access your location for a better experience.",
+    "location.dialog_benefits": "With location enabled, you can:",
+    "location.benefit_distance": "See distance to each mosque",
+    "location.benefit_nearby": "Find mosques near you",
+    "location.benefit_map": "Center the map on your location",
+    "location.never_show_again": "Don't show this again",
+    "location.accept": "Enable Location",
+    "location.decline": "Not Now",
 
     // Admin
     "admin.panel": "Admin Panel",
@@ -589,6 +606,23 @@ export const translations = {
     "filter.sort.nearest": "Terdekat",
     "filter.sort.most_amenities": "Kebanyakan Kemudahan",
     "filter.sort.alphabetical": "Abjad",
+    // Near Me
+    "filter.near_me": "Berdekatan",
+    "filter.enable_location": "Aktifkan lokasi",
+    "filter.location_denied": "Akses lokasi ditolak",
+    "filter.getting_location": "Mendapatkan lokasi anda...",
+    "filter.within_radius": "dalam lingkungan {distance} km",
+
+    // Location Permission Dialog
+    "location.dialog_title": "Aktifkan Perkhidmatan Lokasi",
+    "location.dialog_description": "Benarkan LepakMasjid mengakses lokasi anda untuk pengalaman yang lebih baik.",
+    "location.dialog_benefits": "Dengan lokasi diaktifkan, anda boleh:",
+    "location.benefit_distance": "Lihat jarak ke setiap masjid",
+    "location.benefit_nearby": "Cari masjid berdekatan",
+    "location.benefit_map": "Pusatkan peta pada lokasi anda",
+    "location.never_show_again": "Jangan tunjukkan lagi",
+    "location.accept": "Aktifkan Lokasi",
+    "location.decline": "Tidak Sekarang",
 
     // Admin
     "admin.panel": "Panel Pentadbir",
