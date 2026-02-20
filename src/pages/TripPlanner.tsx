@@ -4,14 +4,13 @@ import Header from "@/components/Header";
 import MapOSM from "@/components/MapOSM";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, MapPin, Navigation, ArrowRight } from "lucide-react";
+import { MapPin, Navigation, ArrowRight } from "lucide-react";
 import { usePlaceSearch } from "@/hooks/use-place-search";
 import { useState } from "react";
 import { useCoords } from "@/hooks/use-coords";
 import { useRoutes } from "@/hooks/use-route";
 
 import { useMosquesAll } from "@/hooks/use-mosques";
-import { useRouteMosque } from "@/hooks/use-route-mosque";
 
 import type { Mosque } from "@/types";
 import { X } from "lucide-react";
@@ -32,7 +31,6 @@ const TripPlanner = () => {
   const [searchTrigger, setSearchTrigger] = useState<{from: any, to: any} | null>(null);
   const { routes, loading } = useRoutes(searchTrigger?.from, searchTrigger?.to);
   const { data: mosques } = useMosquesAll();
-  const { mosquesAlongRoute, closestMosque } = useRouteMosque(mosques, routes);
   
   const handleSearch = () => {
     if (fromCoords && toCoords) {
@@ -50,6 +48,17 @@ const TripPlanner = () => {
     setToValue(place.display_name);
     setToPlace(place);
     setShowToResults(false);
+  };
+
+  const handleResetInputs = () => {
+    setFromValue("");
+    setToValue("");
+    setFromPlace(null);
+    setToPlace(null);
+    setShowFromResults(false);
+    setShowToResults(false);
+    setSearchTrigger(null);
+    setSelectedMosque(null);
   };
 
   const mapCenter = toPlace
@@ -159,6 +168,14 @@ const TripPlanner = () => {
                 {loading ? "Calculating..." : "Search Route"}
                 {!loading && <ArrowRight className="ml-2 h-4 w-4" />}
               </Button>
+              <Button
+                variant="outline"
+                onClick={handleResetInputs}
+                disabled={loading}
+                className="w-full"
+              >
+                Reset Inputs
+              </Button>
 
               {/* Loading Indicator */}
               {loading && (
@@ -234,7 +251,7 @@ const TripPlanner = () => {
             lat={mapCenter?.lat}
             lon={mapCenter?.lon}
             route={routes}
-            mosques={mosquesAlongRoute}
+            mosques={mosques ?? []}
             onMosqueClick={setSelectedMosque}
           />
         </div>
