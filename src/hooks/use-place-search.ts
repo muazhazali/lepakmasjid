@@ -18,25 +18,44 @@ export function usePlaceSearch(query: string) {
 
     const controller = new AbortController();
 
-    setLoading(true);
-    fetch(
-      `https://nominatim.openstreetmap.org/search?` +
-        new URLSearchParams({
-          q: query,
-          format: "json",
-          limit: "5",
-          countrycodes: "my",
-        }),
-      {
-        signal: controller.signal,
-        headers: {
-          "User-Agent": "TripPlanner/1.0",
-        },
+    const fetchPlaces = async () => {
+      setLoading(true);
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?` +
+            new URLSearchParams({
+              q: query,
+              format: "json",
+              limit: "5",
+              countrycodes: "my",
+            }),
+          {
+            signal: controller.signal,
+            headers: {
+              "User-Agent": "TripPlanner/1.0",
+            },
+          }
+        );
+
+        if (!response.ok) {
+          setResults([]);
+          return;
+        }
+
+        const data = (await response.json()) as Place[];
+        setResults(data);
+      } catch (error) {
+        // Ignore abort errors when users keep typing quickly.
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+        setResults([]);
+      } finally {
+        setLoading(false);
       }
-    )
-      .then((r) => r.json())
-      .then(setResults)
-      .finally(() => setLoading(false));
+    };
+
+    fetchPlaces();
 
     return () => controller.abort();
   }, [query]);

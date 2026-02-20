@@ -73,6 +73,12 @@ const Header = () => {
                 {t("nav.explore")}
               </Link>
               <Link
+                to="/trip-planner"
+                className="text-muted-foreground hover:text-foreground transition-colors font-medium"
+              >
+                {t("nav.trip_planner")}
+              </Link>
+              <Link
                 to="/submit"
                 className="text-muted-foreground hover:text-foreground transition-colors font-medium"
               >
@@ -196,6 +202,13 @@ const Header = () => {
                   onClick={() => setIsMenuOpen(false)}
                 >
                   {t("nav.contribute")}
+                </Link>
+                <Link
+                  to="/trip-planner"
+                  className="px-4 py-3 text-foreground hover:bg-secondary rounded-lg transition-colors font-medium"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {t("nav.trip_planner")}
                 </Link>
                 {isAdmin && (
                   <Link

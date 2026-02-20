@@ -7,6 +7,7 @@ export const translations = {
     "nav.add_mosque": "Add Mosque",
     "nav.admin": "Admin",
     "nav.profile": "Profile",
+    "nav.trip_planner": "Plan Journey",
 
     // Auth
     "auth.login": "Login",
@@ -551,6 +552,7 @@ export const translations = {
     "nav.add_mosque": "Tambah Masjid",
     "nav.admin": "Pentadbir",
     "nav.profile": "Profil",
+    "nav.trip_planner": "Rancang Perjalanan",
 
     // Auth
     "auth.login": "Log Masuk",
