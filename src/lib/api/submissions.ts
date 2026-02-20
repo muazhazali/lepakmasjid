@@ -12,6 +12,32 @@ import { amenitiesApi, mosqueAmenitiesApi } from "./amenities";
 import { activitiesApi } from "./activities";
 import { logAuditEvent, createEntitySnapshot } from "../audit-logger";
 
+type SubmissionType = "new_mosque" | "edit_mosque";
+
+const isSubmissionType = (value: unknown): value is SubmissionType =>
+  value === "new_mosque" || value === "edit_mosque";
+
+const stableStringify = (value: unknown): string => {
+  if (value === null || value === undefined) {
+    return String(value);
+  }
+  if (Array.isArray(value)) {
+    return `[${value.map((item) => stableStringify(item)).join(",")}]`;
+  }
+  if (value instanceof Date) {
+    return JSON.stringify(value.toISOString());
+  }
+  if (typeof value === "object") {
+    const entries = Object.entries(value as Record<string, unknown>).sort(
+      ([a], [b]) => a.localeCompare(b)
+    );
+    return `{${entries
+      .map(([k, v]) => `${JSON.stringify(k)}:${stableStringify(v)}`)
+      .join(",")}}`;
+  }
+  return JSON.stringify(value);
+};
+
 export const submissionsApi = {
   // List submissions (admin only)
   async list(
@@ -74,6 +100,50 @@ export const submissionsApi = {
   ): Promise<Submission> {
     // Extract imageFile from data if present
     const { imageFile, ...submissionData } = data;
+    const submissionDataObj =
+      (submissionData.data as Record<string, unknown>) || {};
+    const { image: _ignoredImage, ...dataWithoutImage } = submissionDataObj;
+
+    // Best-effort idempotency: block creating another pending submission with identical payload.
+    // This protects against rapid clicks, retries, and auth-dialog race conditions.
+    const submittedBy = submissionData.submitted_by;
+    const submissionType = submissionData.type;
+    const mosqueId = submissionData.mosque_id;
+    if (
+      typeof submittedBy === "string" &&
+      validateRecordId(submittedBy) &&
+      isSubmissionType(submissionType)
+    ) {
+      if (mosqueId && typeof mosqueId === "string" && !validateRecordId(mosqueId)) {
+        throw new Error("Invalid mosque ID format");
+      }
+
+      const pendingFilterParts = [
+        `submitted_by = "${submittedBy}"`,
+        `status = "pending"`,
+        `type = "${submissionType}"`,
+      ];
+      if (submissionType === "edit_mosque" && typeof mosqueId === "string") {
+        pendingFilterParts.push(`mosque_id = "${mosqueId}"`);
+      }
+      const pendingFilter = pendingFilterParts.join(" && ");
+
+      const existingPending = await pb.collection("submissions").getList(1, 100, {
+        filter: pendingFilter,
+        sort: "-submitted_at",
+      });
+
+      const targetPayload = stableStringify(dataWithoutImage);
+      const hasDuplicate = existingPending.items.some((item) => {
+        const existingData = ((item as unknown as Submission).data ||
+          {}) as Record<string, unknown>;
+        return stableStringify(existingData) === targetPayload;
+      });
+
+      if (hasDuplicate) {
+        throw new Error("You already have a pending submission with the same details.");
+      }
+    }
 
     // If image file is provided, validate it first
     if (imageFile) {
@@ -85,11 +155,6 @@ export const submissionsApi = {
 
     // If we have an image file, use FormData to upload
     if (imageFile) {
-      // Ensure data is an object and remove any image reference from it
-      const submissionDataObj =
-        (submissionData.data as Record<string, unknown>) || {};
-      const { image, ...dataWithoutImage } = submissionDataObj;
-
       // Create FormData - build it similar to createFormDataWithImage but adapted for submissions
       const formData = new FormData();
 
@@ -145,9 +210,13 @@ export const submissionsApi = {
     }
 
     // Otherwise, create normally without image
+    const sanitizedSubmissionData = {
+      ...submissionData,
+      data: dataWithoutImage,
+    };
     const createdSubmission = (await pb
       .collection("submissions")
-      .create(submissionData)) as unknown as Submission;
+      .create(sanitizedSubmissionData)) as unknown as Submission;
 
     // Log audit event
     await logAuditEvent(

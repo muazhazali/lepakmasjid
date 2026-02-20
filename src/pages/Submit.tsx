@@ -104,6 +104,7 @@ const Submit = () => {
     null
   );
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const submitInFlightRef = useRef(false);
 
   // Amenities state
   const [selectedAmenities, setSelectedAmenities] = useState<
@@ -158,11 +159,18 @@ const Submit = () => {
         return;
       }
 
+      // Prevent duplicate records from rapid clicks or auth-flow re-entry.
+      if (submitInFlightRef.current) {
+        return;
+      }
+      submitInFlightRef.current = true;
+
       // Validate image if provided
       if (imageFile) {
         const validationError = validateImageFile(imageFile);
         if (validationError) {
           setImageError(validationError);
+          submitInFlightRef.current = false;
           return;
         }
       }
@@ -223,6 +231,8 @@ const Submit = () => {
         const errorMessage =
           err instanceof Error ? err.message : t("submit.error");
         setError(errorMessage);
+      } finally {
+        submitInFlightRef.current = false;
       }
     },
     [
@@ -242,9 +252,10 @@ const Submit = () => {
   useEffect(() => {
     if (!showAuthDialog) {
       if (user && pendingFormData) {
-        // User logged in, submit the pending form
-        handleFormSubmission(pendingFormData);
+        // Clear pending data first to avoid duplicate effect-triggered submits.
+        const dataToSubmit = pendingFormData;
         setPendingFormData(null);
+        void handleFormSubmission(dataToSubmit);
       } else if (!user && pendingFormData) {
         // Dialog closed without login, clear pending data
         setPendingFormData(null);
@@ -539,6 +550,10 @@ const Submit = () => {
   };
 
   const onSubmit = async (data: MosqueFormData) => {
+    if (submitInFlightRef.current) {
+      return;
+    }
+
     if (!user) {
       // Show auth dialog instead of error message
       setPendingFormData(data);
