@@ -18,6 +18,15 @@ export default defineConfig(({ mode }) => ({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/sedekah-proxy/, '/api/masjid'),
       },
+      "/api/nominatim": {
+        target: "https://nominatim.openstreetmap.org",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/nominatim/, ""),
+        headers: {
+          "User-Agent": "LepakMasjid/1.0 (community directory search)",
+          Referer: "http://localhost:8080",
+        },
+      },
     },
   },
   plugins: [react(), mode === "development" && componentTagger()].filter(Boolean),

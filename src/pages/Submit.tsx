@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { useForm } from "react-hook-form";
@@ -23,7 +23,16 @@ import { SkipLink } from "@/components/SkipLink";
 import { AuthDialog } from "@/components/Auth/AuthDialog";
 import { toast } from "sonner";
 import { validateImageFile } from "@/lib/pocketbase-images";
-import { X, Plus } from "lucide-react";
+import { X, Plus, Search, Loader2 } from "lucide-react";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  Popup,
+  useMap,
+  useMapEvents,
+} from "react-leaflet";
+import L from "leaflet";
 import type {
   Amenity,
   MosqueAmenityDetails,
@@ -38,6 +47,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { MALAYSIAN_STATES } from "@/types";
+
+// Fix for default marker icons in React-Leaflet
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
+  iconUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
+  shadowUrl:
+    "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png",
+});
 
 const createMosqueSchema = (t: (key: string) => string) =>
   z.object({
@@ -85,6 +106,61 @@ interface ActivityFormData {
   status: "active" | "cancelled";
 }
 
+interface NominatimSearchResult {
+  place_id: number | string;
+  display_name: string;
+  lat: string;
+  lon: string;
+}
+
+interface PhotonFeature {
+  geometry: {
+    coordinates: [number, number];
+  };
+  properties: {
+    osm_id?: number;
+    osm_value?: string;
+    name?: string;
+    street?: string;
+    city?: string;
+    state?: string;
+    country?: string;
+    countrycode?: string;
+  };
+}
+
+interface PhotonSearchResponse {
+  features?: PhotonFeature[];
+}
+
+function CoordinatePicker({ onPick }: { onPick: (lat: number, lng: number) => void }) {
+  useMapEvents({
+    click(event) {
+      onPick(event.latlng.lat, event.latlng.lng);
+    },
+  });
+
+  return null;
+}
+
+function MapViewportUpdater({
+  center,
+  zoom,
+}: {
+  center: [number, number];
+  zoom: number;
+}) {
+  const map = useMap();
+
+  useEffect(() => {
+    map.flyTo(center, zoom, { duration: 0.8 });
+  }, [center, zoom, map]);
+
+  return null;
+}
+
+const DEFAULT_MAP_CENTER: [number, number] = [3.139, 101.6869];
+
 const Submit = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -100,6 +176,14 @@ const Submit = () => {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [locationQuery, setLocationQuery] = useState("");
+  const [locationResults, setLocationResults] = useState<NominatimSearchResult[]>(
+    []
+  );
+  const [locationSearchError, setLocationSearchError] = useState<string | null>(
+    null
+  );
+  const [isSearchingLocation, setIsSearchingLocation] = useState(false);
   const [pendingFormData, setPendingFormData] = useState<MosqueFormData | null>(
     null
   );
@@ -151,6 +235,161 @@ const Submit = () => {
   });
 
   const selectedState = watch("state");
+  const latValue = watch("lat");
+  const lngValue = watch("lng");
+  const addressValue = watch("address");
+
+  const hasValidCoordinates =
+    Number.isFinite(latValue) &&
+    Number.isFinite(lngValue) &&
+    Math.abs(latValue) <= 90 &&
+    Math.abs(lngValue) <= 180;
+
+  const selectedCoordinates = useMemo<[number, number] | null>(
+    () => (hasValidCoordinates ? [latValue, lngValue] : null),
+    [hasValidCoordinates, latValue, lngValue]
+  );
+
+  const mapCenter = selectedCoordinates || DEFAULT_MAP_CENTER;
+  const mapZoom = selectedCoordinates ? 15 : 11;
+
+  const setCoordinates = useCallback(
+    (lat: number, lng: number) => {
+      setValue("lat", Number(lat.toFixed(6)), {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+      setValue("lng", Number(lng.toFixed(6)), {
+        shouldValidate: true,
+        shouldDirty: true,
+      });
+    },
+    [setValue]
+  );
+
+  const handleMapPick = useCallback(
+    (lat: number, lng: number) => {
+      setCoordinates(lat, lng);
+    },
+    [setCoordinates]
+  );
+
+  const handleLocationSearch = useCallback(async () => {
+    const query = locationQuery.trim();
+    if (query.length < 2) {
+      setLocationSearchError(t("submit.map_search_min_chars"));
+      setLocationResults([]);
+      return;
+    }
+
+    setIsSearchingLocation(true);
+    setLocationSearchError(null);
+
+    try {
+      const searchNominatim = async (): Promise<NominatimSearchResult[]> => {
+        const response = await fetch(
+          `/api/nominatim/search?format=jsonv2&addressdetails=1&limit=5&countrycodes=my&q=${encodeURIComponent(
+            query
+          )}`
+        );
+        if (!response.ok) {
+          throw new Error(`nominatim_${response.status}`);
+        }
+
+        return (await response.json()) as NominatimSearchResult[];
+      };
+
+      const searchPhotonFallback = async (): Promise<NominatimSearchResult[]> => {
+        const response = await fetch(
+          `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=8&lang=en`
+        );
+        if (!response.ok) {
+          throw new Error(`photon_${response.status}`);
+        }
+
+        const payload = (await response.json()) as PhotonSearchResponse;
+        const queryLower = query.toLowerCase();
+
+        const mappedResults = (payload.features ?? [])
+          .filter((feature) => {
+            const countryCode = (feature.properties.countrycode || "").toLowerCase();
+            const country = (feature.properties.country || "").toLowerCase();
+            return countryCode === "my" || country === "malaysia";
+          })
+          .filter((feature) => {
+            // Keep mosque-focused results for mosque searches; otherwise keep all.
+            if (!queryLower.includes("masjid")) {
+              return true;
+            }
+
+            const name = (feature.properties.name || "").toLowerCase();
+            const osmValue = (feature.properties.osm_value || "").toLowerCase();
+            return name.includes("masjid") || osmValue === "place_of_worship";
+          })
+          .slice(0, 5)
+          .map((feature, index) => {
+            const [lon, lat] = feature.geometry.coordinates;
+            const displayName = [
+              feature.properties.name,
+              feature.properties.street,
+              feature.properties.city,
+              feature.properties.state,
+              feature.properties.country,
+            ]
+              .filter(Boolean)
+              .join(", ");
+
+            return {
+              place_id: feature.properties.osm_id ?? `photon-${index}-${lat}-${lon}`,
+              display_name: displayName || `${lat}, ${lon}`,
+              lat: String(lat),
+              lon: String(lon),
+            };
+          });
+
+        return mappedResults;
+      };
+
+      let results: NominatimSearchResult[] = [];
+      try {
+        results = await searchNominatim();
+      } catch {
+        results = await searchPhotonFallback();
+      }
+
+      setLocationResults(results);
+
+      if (results.length === 0) {
+        setLocationSearchError(t("submit.map_search_no_results"));
+      }
+    } catch {
+      setLocationSearchError(t("submit.map_search_failed"));
+      setLocationResults([]);
+    } finally {
+      setIsSearchingLocation(false);
+    }
+  }, [locationQuery, t]);
+
+  const handleSelectSearchResult = useCallback(
+    (result: NominatimSearchResult) => {
+      const lat = Number.parseFloat(result.lat);
+      const lng = Number.parseFloat(result.lon);
+
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+        setLocationSearchError(t("submit.map_search_failed"));
+        return;
+      }
+
+      setCoordinates(lat, lng);
+      if (!addressValue?.trim()) {
+        setValue("address", result.display_name, { shouldDirty: true });
+      }
+      setLocationQuery(result.display_name);
+      setLocationResults([]);
+      setLocationSearchError(null);
+    },
+    [addressValue, setCoordinates, setValue, t]
+  );
 
   // Define handleFormSubmission with useCallback to use in useEffect
   const handleFormSubmission = useCallback(
@@ -702,6 +941,84 @@ const Submit = () => {
                     </p>
                   )}
                 </div>
+              </div>
+
+              <div className="space-y-3">
+                <Label>{t("submit.map_search_label")}</Label>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Input
+                    value={locationQuery}
+                    onChange={(event) => setLocationQuery(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter") {
+                        event.preventDefault();
+                        void handleLocationSearch();
+                      }
+                    }}
+                    placeholder={t("submit.map_search_placeholder")}
+                  />
+                  <Button
+                    type="button"
+                    onClick={() => void handleLocationSearch()}
+                    disabled={isSearchingLocation}
+                    className="sm:w-auto w-full"
+                  >
+                    {isSearchingLocation ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Search className="mr-2 h-4 w-4" />
+                    )}
+                    {t("submit.map_search_button")}
+                  </Button>
+                </div>
+
+                {locationSearchError && (
+                  <p className="text-sm text-destructive">{locationSearchError}</p>
+                )}
+
+                {locationResults.length > 0 && (
+                  <div className="border rounded-md p-2 space-y-1 max-h-52 overflow-y-auto">
+                    {locationResults.map((result) => (
+                      <Button
+                        key={result.place_id}
+                        type="button"
+                        variant="ghost"
+                        className="h-auto w-full justify-start whitespace-normal text-left"
+                        onClick={() => handleSelectSearchResult(result)}
+                      >
+                        {result.display_name}
+                      </Button>
+                    ))}
+                  </div>
+                )}
+
+                <div className="h-72 overflow-hidden rounded-md border">
+                  <MapContainer
+                    center={mapCenter}
+                    zoom={mapZoom}
+                    scrollWheelZoom
+                    className="h-full w-full"
+                  >
+                    <TileLayer
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
+                    <MapViewportUpdater center={mapCenter} zoom={mapZoom} />
+                    <CoordinatePicker onPick={handleMapPick} />
+                    {selectedCoordinates && (
+                      <Marker position={selectedCoordinates}>
+                        <Popup>
+                          {t("submit.map_selected_coordinates")}:{" "}
+                          {selectedCoordinates[0].toFixed(6)},{" "}
+                          {selectedCoordinates[1].toFixed(6)}
+                        </Popup>
+                      </Marker>
+                    )}
+                  </MapContainer>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {t("submit.map_hint")}
+                </p>
               </div>
 
               <div className="grid md:grid-cols-2 gap-4">

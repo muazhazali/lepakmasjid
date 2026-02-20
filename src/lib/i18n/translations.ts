@@ -171,6 +171,16 @@ export const translations = {
     "submit.state_placeholder": "e.g., Selangor",
     "submit.latitude": "Latitude",
     "submit.longitude": "Longitude",
+    "submit.map_search_label": "Find mosque on map",
+    "submit.map_search_placeholder": "Search mosque name or address",
+    "submit.map_search_button": "Search map",
+    "submit.map_search_min_chars": "Type at least 2 characters to search.",
+    "submit.map_search_no_results": "No matching locations found.",
+    "submit.map_search_failed":
+      "Unable to search map right now. Please try again.",
+    "submit.map_selected_coordinates": "Selected coordinates",
+    "submit.map_hint":
+      "Search for a mosque or click directly on the map to auto-fill latitude and longitude.",
     "submit.description_en": "Description (English)",
     "submit.description_bm": "Description (Bahasa Melayu)",
     "submit.submitting": "Submitting...",
@@ -680,6 +690,17 @@ export const translations = {
     "submit.state_placeholder": "cth., Selangor",
     "submit.latitude": "Latitud",
     "submit.longitude": "Longitud",
+    "submit.map_search_label": "Cari masjid pada peta",
+    "submit.map_search_placeholder": "Cari nama masjid atau alamat",
+    "submit.map_search_button": "Cari peta",
+    "submit.map_search_min_chars":
+      "Taip sekurang-kurangnya 2 aksara untuk mencari.",
+    "submit.map_search_no_results": "Tiada lokasi sepadan ditemui.",
+    "submit.map_search_failed":
+      "Tidak dapat membuat carian peta sekarang. Sila cuba lagi.",
+    "submit.map_selected_coordinates": "Koordinat dipilih",
+    "submit.map_hint":
+      "Cari masjid atau klik terus pada peta untuk isi latitud dan longitud secara automatik.",
     "submit.description_en": "Penerangan (Bahasa Inggeris)",
     "submit.description_bm": "Penerangan (Bahasa Melayu)",
     "submit.submitting": "Menghantar...",
