@@ -97,6 +97,13 @@ export const AuthDialog = ({ open, onOpenChange }: AuthDialogProps) => {
           </Alert>
         )}
 
+        <Alert variant="destructive" role="status" aria-live="polite">
+          <AlertDescription className="break-words">
+            Google sign-in is currently not working. Please use email login or
+            registration for now.
+          </AlertDescription>
+        </Alert>
+
         <Tabs
           value={activeTab}
           onValueChange={(v) => setActiveTab(v as "login" | "register")}
