@@ -1,6 +1,7 @@
 // Core types matching PRD schema
 
 export interface Mosque {
+  collectionId: any;
   id: string;
   name: string;
   name_bm?: string;

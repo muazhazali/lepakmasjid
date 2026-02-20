@@ -144,6 +144,11 @@ export const translations = {
     "hero.search_placeholder": "Search mosque name or location...",
     "hero.search_button": "Search",
     "hero.popular": "Popular:",
+    "hero.plan_journey": "Plan Your Journey",
+
+    // Trip Planner
+    "trip_planner.title": "Trip Planner",
+    "trip_planner.coming_soon": "Coming soon...",
 
     // CTA Section
     "cta.title": "Help Build the Largest Mosque Directory",
@@ -662,6 +667,11 @@ export const translations = {
     "hero.search_placeholder": "Cari nama masjid atau lokasi...",
     "hero.search_button": "Cari",
     "hero.popular": "Popular:",
+    "hero.plan_journey": "Rancang Perjalanan Anda",
+
+    // Trip Planner
+    "trip_planner.title": "Perancang Perjalanan",
+    "trip_planner.coming_soon": "Akan datang...",
 
     // CTA Section
     "cta.title": "Bantu Membina Direktori Masjid Terbesar",

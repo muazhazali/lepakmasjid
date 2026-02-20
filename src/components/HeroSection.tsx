@@ -127,6 +127,20 @@ const HeroSection = ({
                 </button>
               )
             )}
+
+          </div>
+            
+          {/* Plan Journey Button */}
+          <div className="mt-8 animate-fade-up" style={{ animationDelay: "0.6s" }}>
+             <Button
+                variant="outline"
+                size="lg"
+                className="h-12 px-6 border-primary-foreground/20 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
+                onClick={() => navigate("/trip-planner")}
+              >
+                <MapPin className="mr-2 h-4 w-4" />
+                {t("hero.plan_journey")}
+              </Button>
           </div>
         </div>
       </div>
