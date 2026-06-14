@@ -22,7 +22,7 @@ import { useLanguageStore } from "@/stores/language";
 import { SkipLink } from "@/components/SkipLink";
 import { AuthDialog } from "@/components/Auth/AuthDialog";
 import { toast } from "sonner";
-import { validateImageFile } from "@/lib/pocketbase-images";
+import { validateImageFile } from "@/lib/images";
 import { X, Plus, Search, Loader2 } from "lucide-react";
 import {
   MapContainer,

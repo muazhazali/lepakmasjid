@@ -2,17 +2,12 @@ import { getApiBase } from "./api-client";
 
 type ImageRecord = {
   id?: string;
-  collectionId?: string;
-  collectionName?: string;
   image?: string | string[] | File | null;
 };
 
-/** Resolve mosque/user image for <img src> (API returns full URL or path). */
 export function getImageUrl(
   record: ImageRecord,
-  filename: string | string[] | File | null | undefined,
-  _thumb?: string,
-  _collectionName?: string
+  filename: string | string[] | File | null | undefined
 ): string | null {
   if (filename instanceof File) return URL.createObjectURL(filename);
 
@@ -30,7 +25,6 @@ export function getImageUrl(
     return candidate;
   }
 
-  // API may return full URL already; if path-only, serve via /api/uploads (Vite proxy)
   if (candidate.startsWith("/")) return candidate;
 
   const apiBase = getApiBase().replace(/\/$/, "");
@@ -39,16 +33,15 @@ export function getImageUrl(
 
 export function getImageUrls(
   record: ImageRecord,
-  filenames: string | string[] | File | null | undefined,
-  thumb?: string
+  filenames: string | string[] | File | null | undefined
 ): string[] {
   if (!filenames) return [];
   if (Array.isArray(filenames)) {
     return filenames
-      .map((f) => getImageUrl(record, f, thumb))
+      .map((f) => getImageUrl(record, f))
       .filter((u): u is string => !!u);
   }
-  const one = getImageUrl(record, filenames, thumb);
+  const one = getImageUrl(record, filenames);
   return one ? [one] : [];
 }
 
@@ -62,12 +55,8 @@ export function validateImageFile(
     "image/gif",
   ]
 ): string | null {
-  if (!allowedTypes.includes(file.type)) {
-    return "Invalid image type";
-  }
-  if (file.size > maxSize) {
-    return "Image too large";
-  }
+  if (!allowedTypes.includes(file.type)) return "Invalid image type";
+  if (file.size > maxSize) return "Image too large";
   return null;
 }
 
@@ -91,8 +80,4 @@ export function createFormDataWithImage(
   }
   if (imageFile) form.append(fieldName, imageFile);
   return form;
-}
-
-export async function getImageFileFromRecord(): Promise<File | null> {
-  return null;
 }

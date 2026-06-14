@@ -1,4 +1,4 @@
-/** API shapes consumed by the Vite frontend (PocketBase-compatible field names). */
+/** API shapes consumed by the Vite frontend (JSON field names for the SPA). */
 
 export interface ClientUser {
   id: string;

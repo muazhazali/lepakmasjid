@@ -2,12 +2,12 @@
 
 Express REST API for [LepakMasjid](https://github.com/muazhazali/lepakmasjid).
 
-**Easiest full stack:** from repo root, `pnpm setup:docker` then `pnpm dev:all` — [docs/LOCAL_DEV.md](../docs/LOCAL_DEV.md).
+**Full stack:** from repo root, `pnpm setup:docker` then `pnpm dev:all` — [docs/LOCAL_DEV.md](../docs/LOCAL_DEV.md).
 
 ## Quick start (API only)
 
 ```bash
-cp .env.example .env   # DATABASE_URL, JWT_SECRET
+cp .env.example .env
 pnpm install
 pnpm migrate
 pnpm seed
@@ -36,18 +36,9 @@ Default seed admin: `admin@lepakmasjid.local` / `adminadmin`
 - `POST /submissions/:id/approve`, `POST /submissions/:id/reject` (admin)
 - `GET /uploads/:filename` (static files)
 
-## PocketBase import
-
-```bash
-pnpm pb:export:public
-pnpm pb:import:public
-```
-
-Full export: set `POCKETBASE_ADMIN_EMAIL` / `POCKETBASE_ADMIN_PASSWORD` in `.env`, then `pnpm pb:export` and `pnpm pb:import`.
-
 ## Frontend
 
-Set `VITE_API_URL=/api` in root `.env.local`. Vite proxies `/api/*` to this server (see root `vite.config.ts`).
+Set `VITE_API_URL=/api` in root `.env.local`. Vite proxies `/api/*` to this server.
 
 ## Roadmap
 

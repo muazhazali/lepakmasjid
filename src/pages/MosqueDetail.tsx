@@ -14,7 +14,7 @@ import { useTranslation } from "@/hooks/use-translation";
 import { useLanguageStore } from "@/stores/language";
 import { SkipLink } from "@/components/SkipLink";
 import { format } from "date-fns";
-import { getImageUrl } from "@/lib/pocketbase-images";
+import { getImageUrl } from "@/lib/images";
 import SedekahQR from "@/components/SedekahQR";
 import OpenMapsButton from "../components/OpenMapsButton";
 import Nearby from "@/components/Nearby";

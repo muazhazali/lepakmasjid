@@ -1,4 +1,4 @@
--- LepakMasjid PostgreSQL schema (migrated from PocketBase)
+-- LepakMasjid PostgreSQL schema for LepakMasjid
 
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 

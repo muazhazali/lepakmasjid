@@ -1,8 +1,5 @@
 /*
   # Content Security Policy
-  # Allows self, PocketBase API (configurable), OpenStreetMap tiles, Leaflet CDN, and Google Fonts
-  # Note: connect-src allows https: to support configurable PocketBase URLs
-  # For stricter security, consider generating CSP headers server-side with the actual PocketBase URL
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: https: blob:; connect-src 'self' https:; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests;
   
   # Security Headers
@@ -10,4 +7,3 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(self), microphone=(), camera=()
-

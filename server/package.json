@@ -8,11 +8,7 @@
     "build": "tsc",
     "migrate": "tsx scripts/migrate.ts",
     "seed": "tsx scripts/seed.ts",
-    "seed:images": "tsx scripts/seed-images.ts",
-    "pb:export": "tsx scripts/pb-export.ts",
-    "pb:export:public": "tsx scripts/pb-export-public.ts",
-    "pb:import": "tsx scripts/pb-import.ts",
-    "pb:import:public": "tsx scripts/pb-import-partial.ts"
+    "seed:images": "tsx scripts/seed-images.ts"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
@@ -23,7 +19,6 @@
     "multer": "^1.4.5-lts.1",
     "nanoid": "^5.0.9",
     "pg": "^8.13.1",
-    "pocketbase": "^0.21.5",
     "zod": "^3.25.76"
   },
   "devDependencies": {

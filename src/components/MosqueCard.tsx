@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useLanguageStore } from "@/stores/language";
 import * as LucideIcons from "lucide-react";
-import { getImageUrl } from "@/lib/pocketbase-images";
+import { getImageUrl } from "@/lib/images";
 
 interface MosqueCardProps {
   mosque: Mosque & { distance?: number };
@@ -25,11 +25,7 @@ const MosqueCard = ({
 
   // Get image URL for the mosque
   const imageUrl =
-    getImageUrl(
-    mosque,
-    mosque.image,
-    viewMode === "list" ? "300x200" : "400x300"
-  ) || "/placeholder.svg";
+    getImageUrl(mosque, mosque.image) || "/placeholder.svg";
   const isListView = viewMode === "list";
 
   // Get icon component dynamically

@@ -34,7 +34,7 @@ import { X, Upload, Trash2, ExternalLink } from "lucide-react";
 import type { Mosque, MosqueAmenityDetails } from "@/types";
 import { MALAYSIAN_STATES } from "@/types";
 import { mosqueAmenitiesApi } from "@/lib/api";
-import { getImageUrl, validateImageFile } from "@/lib/pocketbase-images";
+import { getImageUrl, validateImageFile } from "@/lib/images";
 
 interface SelectedAmenity {
   amenity_id: string;

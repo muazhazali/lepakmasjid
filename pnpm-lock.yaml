@@ -246,9 +246,6 @@ importers:
       lovable-tagger:
         specifier: ^1.1.13
         version: 1.1.13(vite@7.3.5(@types/node@22.19.11)(jiti@1.21.7))
-      pocketbase:
-        specifier: ^0.21.5
-        version: 0.21.5
       postcss:
         specifier: '>=8.5.10'
         version: 8.5.15
@@ -2313,9 +2310,6 @@ packages:
   pirates@4.0.7:
     resolution: {integrity: sha512-TfySrs/5nm8fQJDcBDuUng3VOUKsd7S+zqvbOTiGXHfxX4wK31ard+hoNuvkicM/2YFzlpDgABOevKSsB4G/FA==}
     engines: {node: '>= 6'}
-
-  pocketbase@0.21.5:
-    resolution: {integrity: sha512-bnI/uinnQps+ElSlzxkc4yvwuSFfKcoszDtXH/4QT2FhGq2mJVUvDlxn+rjRXVntUjPfmMG5LEPZ1eGqV6ssog==}
 
   postcss-import@15.1.0:
     resolution: {integrity: sha512-hpr+J05B2FVYUAXHeK1YyI267J/dDDhMU6B6civm8hSY1jYJnBXxzKDKDswzJmtLHryrjhnDjqqp/49t8FALew==}
@@ -4777,8 +4771,6 @@ snapshots:
   pify@2.3.0: {}
 
   pirates@4.0.7: {}
-
-  pocketbase@0.21.5: {}
 
   postcss-import@15.1.0(postcss@8.5.15):
     dependencies:

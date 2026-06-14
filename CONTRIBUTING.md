@@ -4,12 +4,12 @@ Thanks for helping improve the mosque directory for Malaysia.
 
 ## Get running locally
 
-See **[docs/LOCAL_DEV.md](./docs/LOCAL_DEV.md)** — shortest path:
-
 ```bash
 pnpm setup:docker
 pnpm dev:all
 ```
+
+Details: **[docs/LOCAL_DEV.md](./docs/LOCAL_DEV.md)**
 
 ## Before you open a PR
 
@@ -20,13 +20,13 @@ pnpm audit:deps
 pnpm build
 ```
 
-If you changed the API, smoke-test with `pnpm dev:api` and hit `http://localhost:8080/api/health`.
+If you changed the API, smoke-test with `pnpm dev:api` and `http://localhost:8080/api/health`.
 
 ## Scope
 
 - **UI copy**: English and Bahasa Melayu where user-facing
 - **Accessibility**: keyboard navigation, labels, contrast
-- **Stack**: React + `server/` Express API + PostgreSQL (not PocketBase for new features)
+- **Stack**: React + Express API (`server/`) + PostgreSQL
 
 ## Questions
 

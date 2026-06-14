@@ -42,11 +42,11 @@ export function validateISODate(dateString: string): boolean {
 }
 
 /**
- * Validates PocketBase record ID format
+ * Validates public record ID (nanoid) format
  * PocketBase IDs are typically 15 characters alphanumeric
  */
 export function validateRecordId(id: string): boolean {
-  // PocketBase IDs are typically 15 characters, alphanumeric
+  // 15-character alphanumeric
   // Allow empty string for optional fields
   if (!id) return false;
   return /^[a-zA-Z0-9]{15}$/.test(id);

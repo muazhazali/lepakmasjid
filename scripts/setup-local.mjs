@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * One-time local dev bootstrap: env files, install deps, DB migrate + seed.
- * Usage: node scripts/setup-local.mjs [--with-docker] [--import-pb]
+ * Usage: node scripts/setup-local.mjs [--with-docker]
  */
 import { copyFileSync, existsSync, readFileSync, writeFileSync, mkdirSync } from "fs";
 import { spawnSync } from "child_process";
@@ -14,7 +14,6 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const serverDir = path.join(root, "server");
 const args = new Set(process.argv.slice(2));
 const withDocker = args.has("--with-docker");
-const importPb = args.has("--import-pb");
 
 function run(cmd, argv, cwd = root) {
   console.log(`\n> ${cmd} ${argv.join(" ")}`);
@@ -98,11 +97,6 @@ function ensureEnv(src, dest, patch) {
   run("pnpm", ["migrate"], serverDir);
   run("pnpm", ["seed"], serverDir);
 
-  if (importPb) {
-    console.log("\nImporting public data from pb.muaz.app (needs network)…");
-    run("pnpm", ["pb:export:public"], serverDir);
-    run("pnpm", ["pb:import:public"], serverDir);
-  }
 
   console.log(`
 Setup complete.

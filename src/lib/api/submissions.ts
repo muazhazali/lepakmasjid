@@ -1,7 +1,7 @@
 import { apiFetch } from "../api-client";
 import type { Submission } from "@/types";
 import { sanitizeError } from "../error-handler";
-import { validateImageFile } from "../pocketbase-images";
+import { validateImageFile } from "../images";
 
 export const submissionsApi = {
   async list(

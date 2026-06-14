@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { pb, getCurrentUser, isAdmin } from "@/lib/pocketbase";
+import { getCurrentUser, isAdmin, logout as clearAuthSession } from "@/lib/auth";
 import type { User } from "@/types";
 import { apiFetch, setStoredAuth } from "@/lib/api-client";
 import {
@@ -130,7 +130,7 @@ export const useAuthStore = create<AuthState>((set) => {
     },
 
     logout: () => {
-      pb.authStore.clear();
+      clearAuthSession();
       checkAuth();
     },
 

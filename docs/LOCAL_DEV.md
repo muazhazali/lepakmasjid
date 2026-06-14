@@ -13,7 +13,7 @@ Fast path to run LepakMasjid on your laptop.
 ```bash
 git clone https://github.com/muazhazali/lepakmasjid.git
 cd lepakmasjid
-pnpm setup
+pnpm setup:docker
 pnpm dev:all
 ```
 
@@ -24,35 +24,15 @@ Open **http://localhost:8080**
 | Admin email | `admin@lepakmasjid.local` |
 | Admin password | `adminadmin` |
 
-`pnpm setup` will:
+`pnpm setup:docker` starts Postgres (Docker), creates `.env` files, installs dependencies, runs migrations and seed.
 
-1. Create `.env.local` and `server/.env` from examples (if missing)
-2. Install root + server dependencies
-3. Run migrations and seed (amenities + admin user)
+Without Docker: start your own Postgres, set `server/.env` `DATABASE_URL`, then `pnpm setup` and `pnpm dev:all`.
 
-It does **not** start Postgres. Do that first:
+## More mosque data
 
-```bash
-pnpm db:up          # Docker Postgres on localhost:5432
-pnpm setup          # then migrate + seed
-```
+Seed only adds admin + amenities. Add mosques via the app (submit flow + admin approve) or extend `server/scripts/seed.ts`.
 
-Or one command:
-
-```bash
-pnpm setup:docker   # db:up + setup
-```
-
-## Real mosque data (optional)
-
-Imports public listings + photos from `pb.muaz.app` (network required):
-
-```bash
-pnpm db:up
-pnpm setup:docker -- --import-pb
-# or after setup:
-pnpm --dir server pb:export:public && pnpm --dir server pb:import:public
-```
+Optional placeholder images: `cd server && pnpm seed:images`
 
 ## Scripts cheat sheet
 
@@ -67,22 +47,16 @@ pnpm --dir server pb:export:public && pnpm --dir server pb:import:public
 | `pnpm dev:all` | API + web in parallel |
 | `pnpm audit:deps` | Security audit |
 
-## Without Docker
-
-1. Create DB/user matching `server/.env.example` (`DATABASE_URL`).
-2. `pnpm setup` (skip `db:up`).
-3. `pnpm dev:all`.
-
 ## Troubleshooting
 
 | Problem | Fix |
 |---------|-----|
 | `ECONNREFUSED` on API | Run `pnpm dev:api` or `pnpm db:up` + `pnpm setup` |
-| Empty mosque list | Run seed only gives admin + amenities; use `--import-pb` or add mosques via admin |
+| Empty mosque list | Expected after seed — submit mosques or extend seed script |
 | Port 5432 in use | Change Docker port in `docker-compose.yml` and `DATABASE_URL` |
-| Images 404 | Ensure `pnpm dev:api` is running; images served via `/api/uploads` |
+| Images 404 | Ensure `pnpm dev:api` is running; images at `/api/uploads` |
 
-## Code quality before PR
+## Before a PR
 
 ```bash
 pnpm format && pnpm lint && pnpm audit:deps && pnpm build
