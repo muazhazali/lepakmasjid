@@ -29,3 +29,7 @@ bun.lockb
 # Documentation
 .docs/*
 server-db-url.txt
+
+# GitHub PAT (local)
+.env.git
+.git-credentials
