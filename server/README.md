@@ -2,7 +2,7 @@
 
 Express REST API for [LepakMasjid](https://github.com/muazhazali/lepakmasjid).
 
-**Full stack:** from repo root, `pnpm setup:docker` then `pnpm dev:all` — [docs/LOCAL_DEV.md](../docs/LOCAL_DEV.md).
+**Full stack:** from repo root, `pnpm setup:docker` then `pnpm dev:all`
 
 ## Quick start (API only)
 

@@ -9,7 +9,6 @@ pnpm setup:docker
 pnpm dev:all
 ```
 
-Details: **[docs/LOCAL_DEV.md](./docs/LOCAL_DEV.md)**
 
 ## Before you open a PR
 

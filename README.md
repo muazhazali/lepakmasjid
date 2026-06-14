@@ -15,7 +15,7 @@ pnpm dev:all         # API + frontend in one terminal
 
 Open **http://localhost:8080** — admin: `admin@lepakmasjid.local` / `adminadmin`
 
-**Docs:** **[docs/LOCAL_DEV.md](./docs/LOCAL_DEV.md)** · **[CONTRIBUTING.md](./CONTRIBUTING.md)**
+See **[CONTRIBUTING.md](./CONTRIBUTING.md)** for PR guidelines.
 
 ## Features
 
@@ -73,7 +73,6 @@ Default Docker DB URL: `postgresql://lepakmasjid:lepakmasjid_dev@127.0.0.1:5432/
 ## Documentation
 
 - [DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md) — PostgreSQL tables
-- [docs/API.md](./docs/API.md) — Frontend hooks and REST overview
 - [server/README.md](./server/README.md) — API setup
 
 ## Contributing
