@@ -12,10 +12,10 @@ A community-maintained, searchable directory of mosques in Malaysia focused on f
 - 🌐 **Bilingual**: Full Bahasa Melayu and English support with language toggle
 - 🌙 **Dark Mode**: Toggle between light and dark themes
 - 👥 **Community-Driven**: Users can submit new mosques and suggest edits to existing mosque information
-- 🔐 **Admin Panel**: Comprehensive moderation workflow for submissions and edits with audit logging
+- 🔐 **Admin Panel**: Moderation workflow for submissions with audit logging
 - 📊 **Activities & Events**: Track one-off, recurring, and fixed activities at mosques
 - 🏢 **Amenities Management**: Standardized amenities catalog with custom amenities support
-- 🔒 **User Authentication**: Email/password and Google OAuth authentication
+- 🔒 **User Authentication**: Email/password (JWT); Google OAuth planned on the new API
 - 📝 **Submission Workflow**: Structured submission system with approval/rejection workflow
 - 📈 **Analytics Dashboard**: Admin dashboard with statistics and insights
 
@@ -23,6 +23,18 @@ A community-maintained, searchable directory of mosques in Malaysia focused on f
 
 View our public web analytics dashboard: [https://umami.muaz.app/share/vH9QwmwSuIv2mDiu](https://umami.muaz.app/share/vH9QwmwSuIv2mDiu)
 
+## Architecture
+
+The app is a **monorepo-style** setup: React frontend + Node API + PostgreSQL.
+
+```
+Browser  →  Vite dev server (:8080)  →  /api/*  →  Express API (:3000)  →  PostgreSQL
+                                              ↘  static uploads (mosque images)
+```
+
+In development, Vite proxies `/api` and `/api/uploads` to the API so the UI uses a single origin. In production, serve `dist/` and reverse-proxy `/api` to the same Express process.
+
+**Historical note:** Production data was originally on [PocketBase](https://pb.muaz.app). The stack has migrated to **PostgreSQL + Express**; import scripts can still pull from PocketBase. See [docs/MIGRATION_POSTGRES.md](./docs/MIGRATION_POSTGRES.md).
 
 ## Tech Stack
 
@@ -31,275 +43,188 @@ View our public web analytics dashboard: [https://umami.muaz.app/share/vH9QwmwSu
 - **Framework**: React 18.3+ with TypeScript
 - **Build Tool**: Vite 7.3+
 - **Routing**: React Router DOM 6.30+
-- **UI Components**: shadcn-ui (Radix UI primitives)
-- **Styling**: Tailwind CSS 3.4+ with Tailwind Typography
-- **Icons**: Lucide React
-- **Forms**: React Hook Form with Zod validation
-- **State Management**: Zustand 4.5+
-- **Data Fetching**: TanStack Query (React Query) 5.83+
-- **Maps**: Leaflet.js 1.9+ with React Leaflet 4.2+
-- **Charts**: Recharts 2.15+ (for admin dashboard)
-- **Notifications**: Sonner (toast notifications)
-- **SEO**: React Helmet Async
+- **UI**: shadcn-ui (Radix UI), Tailwind CSS 3.4+
+- **State**: Zustand, TanStack Query
+- **Maps**: Leaflet / React Leaflet, OpenStreetMap
+- **Forms**: React Hook Form + Zod
 
-### Backend
+### Backend (`server/`)
 
-- **Backend**: PocketBase 0.21+
-- **Authentication**: PocketBase Auth with Google OAuth2 support
-- **Database**: SQLite (via PocketBase)
+- **Runtime**: Node.js, Express 5
+- **Database**: PostgreSQL 16
+- **Auth**: JWT (bcrypt password hashes)
+- **IDs**: PocketBase-compatible 15-character text IDs (nanoid)
+- **Files**: Local `uploads/` directory, served at `/uploads` (exposed as `/api/uploads` via proxy)
 
-### Development Tools
+### Tooling
 
-- **Package Manager**: pnpm 8+
-- **Linting**: ESLint 9.32+ with TypeScript ESLint
-- **Formatting**: Prettier 3.7+ (integrated with ESLint)
-- **Type Checking**: TypeScript 5.8+
-- **Code Quality**: Lovable Tagger (development mode)
+- **Package manager**: pnpm 10+
+- **Lint / format**: ESLint 9, Prettier 3
+- **Security**: `pnpm audit:deps` (root + server)
 
 ## Prerequisites
 
-- **Node.js**: 18+ (LTS recommended)
-- **pnpm**: 8+ ([Install pnpm](https://pnpm.io/installation))
-- **Git**: For version control
+- **Node.js** 20+ (22 LTS recommended)
+- **pnpm** 10+ ([install](https://pnpm.io/installation))
+- **PostgreSQL** 16+ (local or remote)
+- **Git**
 
-## Local Development Setup
+## Local development
 
-### 1. Clone the repository
+### 1. Clone and install
 
-```powershell
-git clone <YOUR_GIT_URL>
+```bash
+git clone https://github.com/muazhazali/lepakmasjid.git
 cd lepakmasjid
-```
-
-### 2. Install dependencies
-
-```powershell
 pnpm install
+cd server && pnpm install && cd ..
 ```
 
-### 3. Environment Configuration
+### 2. PostgreSQL
 
-Create a `.env.local` file in the root directory:
+Create a database and user, for example:
 
-```env
-VITE_POCKETBASE_URL=https://pb.muaz.app
-VITE_APP_URL=http://localhost:8080
+```sql
+CREATE USER lepakmasjid_app WITH PASSWORD 'your-secure-password';
+CREATE DATABASE lepakmasjid OWNER lepakmasjid_app;
 ```
 
-The app connects to PocketBase at `pb.muaz.app` by default. You can override this with the `VITE_POCKETBASE_URL` environment variable.
+### 3. API (`server/`)
 
-### 4. Start the development server
-
-```powershell
+```bash
+cd server
+cp .env.example .env
+# Edit .env: DATABASE_URL, JWT_SECRET, PORT=3000, UPLOAD_DIR, PUBLIC_URL
+pnpm migrate
+pnpm seed
 pnpm dev
 ```
 
-The app will be available at `http://localhost:8080`
+Default seed admin: **`admin@lepakmasjid.local`** / **`adminadmin`** (change in production).
 
-### 5. Build for production
+API health: `http://127.0.0.1:3000/health`
 
-```powershell
-pnpm build
+### 4. Frontend (repo root)
+
+```bash
+cp .env.example .env.local
 ```
 
-The production build will be output to the `dist` directory.
-
-### 6. Preview production build
-
-```powershell
-pnpm preview
+```env
+VITE_API_URL=/api
+VITE_APP_URL=http://localhost:8080
 ```
 
-This serves the production build locally for testing.
+```bash
+pnpm dev
+```
 
-## Project Structure
+Open **http://localhost:8080** (or your LAN IP on `:8080`).
+
+### 5. Import data from PocketBase (optional)
+
+```bash
+cd server
+pnpm pb:export:public    # mosques, amenities, images from pb.muaz.app
+pnpm pb:import:public    # into Postgres
+```
+
+Full export (users, submissions, audit) requires PocketBase superuser env vars — see `server/.env.example` and [docs/MIGRATION_POSTGRES.md](./docs/MIGRATION_POSTGRES.md).
+
+### 6. Production build
+
+```bash
+pnpm build          # output in dist/
+pnpm preview        # local preview of static build
+```
+
+Deploy `dist/` behind a reverse proxy that forwards `/api` to the Node API.
+
+## Project structure
 
 ```
 lepakmasjid/
-├── public/                 # Static assets
-│   ├── _headers           # Headers configuration
-│   ├── _redirects         # Client-side routing redirects
-│   └── ...
-├── scripts/               # Node.js setup and utility scripts
-│   ├── create-collections.js
-│   ├── seed-data.js
-│   ├── test-connection.js
-│   └── ...
-├── src/
-│   ├── components/        # React components
-│   │   ├── ui/           # shadcn-ui components (buttons, cards, etc.)
-│   │   ├── Admin/        # Admin panel components
-│   │   ├── Auth/         # Authentication components
-│   │   │   ├── AuthDialog.tsx
-│   │   │   ├── AuthGuard.tsx
-│   │   │   ├── GoogleAuthButton.tsx
-│   │   │   ├── LoginForm.tsx
-│   │   │   └── RegisterForm.tsx
-│   │   ├── Map/          # Map-related components
-│   │   │   ├── MapView.tsx
-│   │   │   ├── MosqueMap.tsx
-│   │   │   └── MosqueMarker.tsx
-│   │   ├── Header.tsx
-│   │   ├── Footer.tsx
-│   │   ├── HeroSection.tsx
-│   │   ├── FeaturedMosques.tsx
-│   │   ├── FilterSidebar.tsx
-│   │   ├── MosqueCard.tsx
-│   │   └── ...
-│   ├── hooks/            # Custom React hooks
-│   │   ├── use-mosques.ts
-│   │   ├── use-submissions.ts
-│   │   ├── use-users.ts
-│   │   ├── use-activities.ts
-│   │   ├── use-amenities.ts
-│   │   ├── use-audit.ts
-│   │   ├── use-pocketbase.ts
-│   │   ├── use-translation.ts
-│   │   └── ...
-│   ├── lib/              # Utilities and services
-│   │   ├── api/         # API service functions
-│   │   │   ├── mosques.ts
-│   │   │   ├── submissions.ts
-│   │   │   ├── users.ts
-│   │   │   ├── activities.ts
-│   │   │   ├── amenities.ts
-│   │   │   └── audit.ts
-│   │   ├── pocketbase.ts      # PocketBase client singleton
-│   │   ├── audit-logger.ts   # Audit logging utility
-│   │   ├── error-handler.ts  # Error handling utilities
-│   │   ├── validation.ts     # Zod validation schemas
-│   │   ├── i18n/             # Internationalization
-│   │   │   └── translations.ts
-│   │   └── utils.ts          # General utilities
-│   ├── pages/            # Page components
-│   │   ├── Index.tsx     # Homepage
-│   │   ├── Explore.tsx  # Mosque exploration page
-│   │   ├── MosqueDetail.tsx
-│   │   ├── Submit.tsx    # Submission form
-│   │   ├── Profile.tsx   # User profile
-│   │   ├── About.tsx
-│   │   ├── PrivacyPolicy.tsx
-│   │   ├── TermsOfUse.tsx
-│   │   ├── ContentPolicy.tsx
-│   │   ├── AuthCallback.tsx  # OAuth callback handler
-│   │   ├── NotFound.tsx
-│   │   └── Admin/        # Admin panel pages
-│   │       ├── Dashboard.tsx
-│   │       ├── Submissions.tsx
-│   │       ├── Mosques.tsx
-│   │       ├── Users.tsx
-│   │       └── AuditLog.tsx
-│   ├── stores/           # Zustand state stores
-│   │   ├── auth.ts       # Authentication state
-│   │   ├── language.ts   # Language preference
-│   │   ├── fontSize.ts   # Font size preference
-│   │   └── theme.ts      # Theme preference
-│   ├── types/            # TypeScript type definitions
-│   │   └── index.ts      # Core types (Mosque, User, Activity, etc.)
-│   ├── App.tsx           # Main app component with routing
-│   └── main.tsx          # Application entry point
-├── .docs/                # Documentation
-│   ├── POCKETBASE_SETUP.md
-│   └── ...
-├── components.json       # shadcn-ui configuration
-├── tailwind.config.ts    # Tailwind CSS configuration
-├── vite.config.ts        # Vite configuration
-├── tsconfig.json         # TypeScript configuration
-└── package.json          # Dependencies and scripts
+├── server/                 # Express API + PostgreSQL
+│   ├── migrations/         # SQL schema
+│   ├── scripts/            # migrate, seed, pb:export/import
+│   ├── src/routes/         # REST handlers
+│   └── uploads/            # mosque images (gitignored)
+├── src/                    # React app
+│   ├── components/
+│   ├── hooks/
+│   ├── lib/api/            # REST client wrappers
+│   ├── lib/api-client.ts   # fetch + JWT
+│   ├── pages/
+│   └── stores/
+├── scripts/                # Legacy PocketBase setup scripts (optional)
+├── docs/MIGRATION_POSTGRES.md
+├── DATABASE_SCHEMA.md      # Domain model (originally PB-oriented)
+├── vite.config.ts          # /api proxy to :3000
+└── package.json
 ```
 
-## Database Schema
+## Database schema
 
-The application uses PocketBase as the backend with 7 collections managing users, mosques, amenities, activities, submissions, and audit logs.
+Tables: `users`, `mosques`, `amenities`, `mosque_amenities`, `activities`, `submissions`, `audit_logs`. SQL source: `server/migrations/001_schema.sql`.
 
-For comprehensive database documentation including:
-- Detailed field specifications and types
-- Access rules and permissions
-- Indexes and performance optimization
-- Relationships and entity diagrams
-- API examples and usage patterns
-- Security and validation rules
+Field-level documentation and relationships: **[DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md)** (conceptual; some PB-specific wording may still apply).
 
-See **[DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md)**
+API details: **[server/README.md](./server/README.md)**
 
-## Environment Variables
+## Environment variables
 
-| Variable              | Description                           | Default                    |
-| --------------------- | ------------------------------------- | -------------------------- |
-| `VITE_POCKETBASE_URL` | PocketBase instance URL               | `https://pb.muaz.app` |
-| `VITE_APP_URL`        | Application URL (for OAuth redirects) | `http://localhost:8080`    |
+### Frontend (`.env.local`)
 
-## Available Scripts
+| Variable        | Description              | Example                    |
+| --------------- | ------------------------ | -------------------------- |
+| `VITE_API_URL`  | API base path            | `/api`                     |
+| `VITE_APP_URL`  | App URL (OAuth redirects)| `http://localhost:8080`    |
 
-### Development
+### API (`server/.env`)
 
-- `pnpm dev` - Start development server
-- `pnpm build` - Build for production
-- `pnpm preview` - Preview production build
-- `pnpm lint` - Run ESLint to check for code issues
-- `pnpm lint:fix` - Run ESLint and automatically fix issues
-- `pnpm format` - Format all code files with Prettier
-- `pnpm format:check` - Check if code files are formatted (useful for CI)
+| Variable         | Description                    |
+| ---------------- | ------------------------------ |
+| `DATABASE_URL`   | PostgreSQL connection string   |
+| `JWT_SECRET`     | Token signing secret           |
+| `PORT`           | API port (default `3000`)      |
+| `PUBLIC_URL`     | Public API base (image URLs)   |
+| `UPLOAD_DIR`     | Directory for uploaded files   |
 
-### PocketBase Setup
+Optional for PocketBase import: `POCKETBASE_URL`, `POCKETBASE_ADMIN_EMAIL`, `POCKETBASE_ADMIN_PASSWORD`.
 
-- `pnpm test:connection` - Test connection to PocketBase
-- `pnpm setup:collections` - Create all required PocketBase collections
-- `pnpm test:schema` - Verify PocketBase collections match PRD schema
-- `pnpm test:submission` - Test submission workflow end-to-end
-- `pnpm seed:data` - Seed database with sample mosque data (10 mosques)
+## Scripts
 
-### Maintenance
+### Frontend (root)
 
-- `pnpm setup:role-field` - Add role field to users collection
-- `pnpm setup:admin` - Set admin role for a user
-- `pnpm fix:permissions` - Fix collection permissions
-- `pnpm fix:audit-logs` - Fix audit logs permissions
-- `pnpm add:image-field` - Add image field to submissions collection
+| Script              | Description                          |
+| ------------------- | ------------------------------------ |
+| `pnpm dev`          | Vite dev server (:8080)              |
+| `pnpm build`        | Production build → `dist/`           |
+| `pnpm preview`      | Preview production build             |
+| `pnpm lint`         | ESLint                               |
+| `pnpm format`       | Prettier                             |
+| `pnpm audit:deps`   | `pnpm audit` in root and `server/`   |
 
-## PocketBase Setup
+### API (`server/`)
 
-The application connects to a deployed PocketBase instance at `pb.muaz.app`.
+| Script                 | Description                    |
+| ---------------------- | ------------------------------ |
+| `pnpm dev`             | API with hot reload            |
+| `pnpm migrate`         | Apply SQL migrations           |
+| `pnpm seed`            | Seed admin + amenities         |
+| `pnpm pb:export:public`| Export public PB collections   |
+| `pnpm pb:import:public`| Import into Postgres           |
 
-### Quick Setup
+### Legacy PocketBase scripts (root `scripts/`)
 
-1. **Test Connection**: Verify you can connect to PocketBase
+Still present for the old hosted PocketBase workflow (`pnpm test:connection`, `setup:collections`, etc.). **Not required** for the PostgreSQL + Express stack.
 
-   ```powershell
-   pnpm run test:connection
-   ```
+## Roadmap / known gaps
 
-2. **Create Collections**: Set up all required collections in PocketBase
-
-   ```powershell
-   pnpm run setup:collections
-   ```
-
-   This will prompt for your PocketBase admin credentials and create all collections automatically.
-
-3. **Verify Schema**: Check that collections match the PRD schema
-
-   ```powershell
-   pnpm run test:schema
-   ```
-
-4. **Configure Google OAuth**: Follow the guide in `.docs/GOOGLE_OAUTH_SETUP.md`
-
-5. **Test Submission Workflow**: Test the end-to-end submission process
-
-   ```powershell
-   pnpm run test:submission
-   ```
-
-6. **Seed Sample Data**: Populate the database with sample mosque data
-   ```powershell
-   pnpm run seed:data
-   ```
-   This will create 10 sample mosques from different Malaysian states with amenities and descriptions.
-
-For detailed setup instructions, see:
-
-- [PocketBase Setup Guide](./.docs/POCKETBASE_SETUP.md) - Detailed PocketBase configuration
+- Google OAuth on the API
+- Full admin CRUD (users, mosque edit/delete) parity
+- Multipart image upload on submission create (API)
+- systemd / production hardening guides
 
 ## Contributing
 
@@ -307,90 +232,44 @@ We welcome contributions! Here's how you can help:
 
 1. **Fork the repository**
 
-   ```powershell
+   ```bash
    git clone <YOUR_FORK_URL>
    cd lepakmasjid
    ```
 
 2. **Create a feature branch**
 
-   ```powershell
+   ```bash
    git checkout -b feature/amazing-feature
    ```
 
 3. **Make your changes**
    - Follow the existing code style
-   - Add tests if applicable
    - Update documentation as needed
+   - Run API + frontend locally before opening a PR
 
-4. **Commit your changes**
+4. **Commit and push**
 
-   ```powershell
+   ```bash
    git commit -m 'Add some amazing feature'
-   ```
-
-   Use clear, descriptive commit messages.
-
-5. **Push to the branch**
-
-   ```powershell
    git push origin feature/amazing-feature
    ```
 
-6. **Open a Pull Request**
-   - Provide a clear description of your changes
-   - Reference any related issues
-   - Ensure all checks pass
+5. **Open a Pull Request** with a clear description and linked issues.
 
-### Code Quality Tools
+### Code quality
 
-This project uses **ESLint** for linting and **Prettier** for code formatting to ensure consistent code style across the codebase.
+Before committing:
 
-#### ESLint
-
-- **Configuration**: `eslint.config.js` (flat config format)
-- **Plugins**: TypeScript ESLint, React Hooks, React Refresh
-- **Integration**: Configured to work with Prettier (no conflicts)
-
-#### Prettier
-
-- **Configuration**: `.prettierrc`
-- **Settings**: 2-space indentation, semicolons, double quotes, 80 character line width
-- **Integration**: ESLint rules that conflict with Prettier are disabled
-
-#### Usage
-
-Before committing code, run:
-
-```powershell
-# Format all code files
+```bash
 pnpm format
-
-# Check for linting issues
 pnpm lint
-
-# Auto-fix linting issues
-pnpm lint:fix
-
-# Check if files are formatted (for CI)
-pnpm format:check
+pnpm audit:deps
+cd server && pnpm dev   # smoke-test API if you touched server/
+pnpm build              # if you touched frontend
 ```
 
-**Recommended**: Set up your editor to format on save:
-
-- **VS Code**: Install the "Prettier - Code formatter" extension and enable "Format on Save"
-- **Other editors**: Configure Prettier integration in your editor settings
-
-### Development Guidelines
-
-- **Code Style**: Follow the existing TypeScript/React patterns
-- **Formatting**: Always run `pnpm format` before committing
-- **Linting**: Fix all ESLint warnings/errors before submitting PRs
-- **Components**: Use shadcn-ui components when possible
-- **State Management**: Use Zustand for global state, React Query for server state
-- **Accessibility**: Ensure all components are accessible (ARIA labels, keyboard navigation)
-- **Internationalization**: All user-facing text should support both English and Bahasa Melayu
-- **Testing**: Test your changes locally before submitting PRs
+**Guidelines:** shadcn-ui components, Zustand + React Query, bilingual strings, accessibility (ARIA, keyboard), TypeScript strictness where applicable.
 
 ## License
 
@@ -411,14 +290,7 @@ See the [LICENSE](./LICENSE) file for details.
 For issues, questions, or feature requests:
 
 - **Email**: [hello@lepakmasjid.app](mailto:hello@lepakmasjid.app)
-- **GitHub Issues**: Open an issue on [GitHub](https://github.com/your-username/lepakmasjid/issues)
-
-Please include:
-
-- A clear description of the issue or question
-- Steps to reproduce (if applicable)
-- Expected vs. actual behavior
-- Browser/device information (if relevant)
+- **GitHub Issues**: [muazhazali/lepakmasjid](https://github.com/muazhazali/lepakmasjid/issues)
 
 ---
 
