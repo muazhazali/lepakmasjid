@@ -1,98 +1,74 @@
-import PocketBase from "pocketbase";
+/**
+ * Legacy module name — backs onto PostgreSQL API (see api-client.ts).
+ */
+import {
+  clearStoredAuth,
+  getStoredAuth,
+  setStoredAuth,
+  apiFetch,
+} from "./api-client";
+import type { User } from "@/types";
 
-// Require environment variable - no hardcoded fallback for security
-const POCKETBASE_URL = import.meta.env.VITE_POCKETBASE_URL;
-
-if (!POCKETBASE_URL) {
-  throw new Error(
-    "VITE_POCKETBASE_URL environment variable is required. " +
-      "Please set it in your .env.local file or deployment environment variables."
-  );
+export function getPocketBase(): never {
+  throw new Error("PocketBase SDK removed; use api-client");
 }
 
-// Create a singleton instance
-let pbInstance: PocketBase | null = null;
-
-export const getPocketBase = (): PocketBase => {
-  if (!pbInstance) {
-    pbInstance = new PocketBase(POCKETBASE_URL);
-
-    // Enable auto-cancellation for requests
-    pbInstance.autoCancellation(false);
-
-    // Load auth from localStorage if available
-    const authData = localStorage.getItem("pocketbase_auth");
-    if (authData) {
-      try {
-        const parsed = JSON.parse(authData);
-        pbInstance.authStore.save(parsed.token, parsed.model);
-      } catch (e) {
-        // Invalid auth data, clear it
-        localStorage.removeItem("pocketbase_auth");
-      }
-    }
-
-    // Save auth to localStorage on change
-    pbInstance.authStore.onChange((token, model) => {
-      if (token && model) {
-        localStorage.setItem(
-          "pocketbase_auth",
-          JSON.stringify({ token, model })
-        );
-      } else {
-        localStorage.removeItem("pocketbase_auth");
-      }
-    });
-  }
-
-  return pbInstance;
+export const pb = {
+  authStore: {
+    get isValid() {
+      return !!getStoredAuth()?.token;
+    },
+    get model() {
+      return getStoredAuth()?.record ?? null;
+    },
+    save(token: string, model: Record<string, unknown>) {
+      setStoredAuth(token, model);
+    },
+    clear() {
+      clearStoredAuth();
+    },
+    onChange(_cb: () => void) {
+      /* Zustand checkAuth on login/logout */
+    },
+  },
+  collection() {
+    throw new Error("Use lib/api/* HTTP client");
+  },
+  health: {
+    async check() {
+      await apiFetch("/health");
+    },
+  },
 };
 
-// Export the instance for direct use
-export const pb = getPocketBase();
+export const isAuthenticated = (): boolean => pb.authStore.isValid;
 
-// Helper to check if user is authenticated
-export const isAuthenticated = (): boolean => {
-  return pb.authStore.isValid;
-};
+export const getCurrentUser = (): User | null =>
+  (pb.authStore.model as User | null) ?? null;
 
-// Helper to get current user
-export const getCurrentUser = () => {
-  return pb.authStore.model;
-};
-
-// Helper to check if user is admin
 export const isAdmin = (): boolean => {
   const user = getCurrentUser();
-  return user?.role === "admin" || false;
+  return user?.role === "admin";
 };
 
-// Helper to logout
 export const logout = (): void => {
   pb.authStore.clear();
 };
 
-// Helper to check PocketBase connection health
 export const checkConnection = async (): Promise<{
   connected: boolean;
   error?: string;
 }> => {
   try {
-    await pb.health.check();
+    await apiFetch("/health");
     return { connected: true };
   } catch (error: unknown) {
     const errorMessage =
-      error instanceof Error
-        ? error.message
-        : "Failed to connect to PocketBase";
-    return {
-      connected: false,
-      error: errorMessage,
-    };
+      error instanceof Error ? error.message : "Failed to connect to API";
+    return { connected: false, error: errorMessage };
   }
 };
 
-// Helper to get PocketBase URL (for debugging)
 export const getPocketBaseUrl = (): string => {
-  return POCKETBASE_URL;
+  return import.meta.env.VITE_API_URL || "/api";
 };

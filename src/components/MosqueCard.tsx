@@ -24,11 +24,12 @@ const MosqueCard = ({
     language === "bm" && mosque.name_bm ? mosque.name_bm : mosque.name;
 
   // Get image URL for the mosque
-  const imageUrl = getImageUrl(
+  const imageUrl =
+    getImageUrl(
     mosque,
     mosque.image,
     viewMode === "list" ? "300x200" : "400x300"
-  );
+  ) || "/placeholder.svg";
   const isListView = viewMode === "list";
 
   // Get icon component dynamically
