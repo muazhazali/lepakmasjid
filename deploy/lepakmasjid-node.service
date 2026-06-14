@@ -1,0 +1,17 @@
+[Unit]
+Description=LepakMasjid production (Node: static dist + Express /api)
+After=network-online.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/lepakmasjid/server
+EnvironmentFile=-/opt/lepakmasjid/server/.env
+Environment=NODE_ENV=production
+Environment=STATIC_DIR=/opt/lepakmasjid/dist
+ExecStart=/usr/bin/node dist/src/production.js
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

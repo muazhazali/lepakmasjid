@@ -27,7 +27,7 @@ export const mosquesApi = {
         `/mosques${buildQuery(filters)}`
       );
     } catch (error: unknown) {
-      throw new Error(sanitizeError(error));
+      throw sanitizeError(error);
     }
   },
 

@@ -502,7 +502,9 @@ const Explore = () => {
                       {t("explore.connection_error")}
                     </h3>
                     <p className="text-muted-foreground mb-4">
-                      {t("explore.connection_error_message")}
+                      {errorView instanceof Error
+                        ? errorView.message
+                        : t("explore.connection_error_message")}
                     </p>
                     <Button
                       variant="outline"

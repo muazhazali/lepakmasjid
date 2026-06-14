@@ -20,7 +20,8 @@
     "db:down": "docker compose down",
     "dev:api": "pnpm --dir server dev",
     "dev:web": "vite",
-    "dev:all": "concurrently -k -n api,web -c blue,green \"pnpm dev:api\" \"pnpm dev:web\""
+    "dev:all": "concurrently -k -n api,web -c blue,green \"pnpm dev:api\" \"pnpm dev:web\"",
+    "start:prod": "pnpm --dir server start:prod"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

@@ -17,6 +17,11 @@ Open **http://localhost:8080** — admin: `admin@lepakmasjid.local` / `adminadmi
 
 See **[CONTRIBUTING.md](./CONTRIBUTING.md)** for PR guidelines.
 
+## Production (self-hosted)
+
+See **[PRODUCTION.md](./PRODUCTION.md)** — Docker Compose, one port **8080** (SPA + `/api`), point **Cloudflare Tunnel** at `http://127.0.0.1:8080`.
+
+
 ## Features
 
 - 🕌 **Mosque Directory**: Searchable directory with GPS coordinates and detailed information

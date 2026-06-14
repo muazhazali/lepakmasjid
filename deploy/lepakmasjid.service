@@ -1,0 +1,16 @@
+[Unit]
+Description=LepakMasjid production (static + API)
+After=network.target docker.service
+Wants=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/lepakmasjid
+EnvironmentFile=-/opt/lepakmasjid/.env.prod
+ExecStart=/usr/bin/docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+ExecStop=/usr/bin/docker compose -f docker-compose.prod.yml --env-file .env.prod down
+TimeoutStartSec=600
+
+[Install]
+WantedBy=multi-user.target

@@ -1,12 +1,16 @@
 import "dotenv/config";
-import { readFileSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 import pg from "pg";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const here = dirname(fileURLToPath(import.meta.url));
+/** `server/migrations` whether run from `scripts/` (tsx) or `dist/scripts/` (node). */
+const serverRoot = existsSync(join(here, "..", "migrations"))
+  ? join(here, "..")
+  : join(here, "..", "..");
 const sql = readFileSync(
-  join(__dirname, "../migrations/001_schema.sql"),
+  join(serverRoot, "migrations/001_schema.sql"),
   "utf8"
 );
 

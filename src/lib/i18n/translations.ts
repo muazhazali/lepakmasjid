@@ -296,7 +296,7 @@ export const translations = {
     // Explore Page
     "explore.connection_error": "Connection Error",
     "explore.connection_error_message":
-      "Unable to connect to the database. Please check your internet connection and try again.",
+      "Unable to load mosque data from the server. Check that the API is running and try again.",
     "explore.retry": "Retry",
     "explore.adjust_search": "Try adjusting your search or filter criteria",
     "explore.grid_view": "Grid view",
@@ -822,7 +822,7 @@ export const translations = {
     // Explore Page
     "explore.connection_error": "Ralat Sambungan",
     "explore.connection_error_message":
-      "Tidak dapat menyambung ke pangkalan data. Sila semak sambungan internet anda dan cuba lagi.",
+      "Tidak dapat memuatkan data masjid dari pelayan. Pastikan API berjalan dan cuba lagi.",
     "explore.retry": "Cuba Lagi",
     "explore.adjust_search": "Cuba laraskan kriteria carian atau penapis anda",
     "explore.grid_view": "Paparan grid",
