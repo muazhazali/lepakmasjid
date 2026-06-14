@@ -18,10 +18,10 @@ importers:
         specifier: ^16.4.7
         version: 16.6.1
       express:
-        specifier: ^5.0.1
+        specifier: ^5.2.1
         version: 5.2.1
       jsonwebtoken:
-        specifier: ^9.0.2
+        specifier: ^9.0.3
         version: 9.0.3
       multer:
         specifier: ^1.4.5-lts.1
@@ -33,7 +33,7 @@ importers:
         specifier: ^8.13.1
         version: 8.21.0
       pocketbase:
-        specifier: 0.21.5
+        specifier: ^0.21.5
         version: 0.21.5
       zod:
         specifier: ^3.25.76
