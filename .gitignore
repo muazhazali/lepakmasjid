@@ -28,3 +28,4 @@ bun.lockb
 
 # Documentation
 .docs/*
+server-db-url.txt
