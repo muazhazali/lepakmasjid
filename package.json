@@ -23,7 +23,15 @@
     "seed:data": "node scripts/seed-data.js",
     "add:image-field": "node scripts/add-image-field-to-submissions.js",
     "deploy": "wrangler deploy --assets=./dist",
-    "audit:deps": "pnpm audit && pnpm --dir server audit"
+    "audit:deps": "pnpm audit && pnpm --dir server audit",
+    "setup": "node scripts/setup-local.mjs",
+    "setup:docker": "pnpm db:up && node scripts/setup-local.mjs --with-docker",
+    "setup:import": "node scripts/setup-local.mjs --with-docker --import-pb",
+    "db:up": "docker compose up -d postgres",
+    "db:down": "docker compose down",
+    "dev:api": "pnpm --dir server dev",
+    "dev:web": "vite",
+    "dev:all": "concurrently -k -n api,web -c blue,green \"pnpm dev:api\" \"pnpm dev:web\""
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -106,7 +114,8 @@
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.56.0",
     "vite": "^7.3.2",
-    "cheerio": "^1.2.0"
+    "cheerio": "^1.2.0",
+    "concurrently": "^9.1.2"
   },
   "packageManager": "pnpm@10.13.1+sha512.37ebf1a5c7a30d5fabe0c5df44ee8da4c965ca0c5af3dbab28c3a1681b70a256218d05c81c9c0dcf767ef6b8551eb5b960042b9ed4300c59242336377e01cfad",
   "pnpm": {

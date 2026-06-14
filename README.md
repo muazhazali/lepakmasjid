@@ -2,6 +2,28 @@
 
 A community-maintained, searchable directory of mosques in Malaysia focused on facilities, activities, and events. Optimized for mobile and elderly users.
 
+## Quick start (open source contributors)
+
+**Node 20+**, **pnpm 10+**, and **Docker** (easiest) or your own PostgreSQL 16.
+
+```bash
+git clone https://github.com/muazhazali/lepakmasjid.git
+cd lepakmasjid
+pnpm setup:docker    # Postgres + .env + migrate + seed
+pnpm dev:all         # API + frontend in one terminal
+```
+
+Open **http://localhost:8080** — admin: `admin@lepakmasjid.local` / `adminadmin`
+
+**With real mosque data** from production PocketBase (optional, needs network):
+
+```bash
+pnpm setup:import
+pnpm dev:all
+```
+
+More detail: **[docs/LOCAL_DEV.md](./docs/LOCAL_DEV.md)** · **[CONTRIBUTING.md](./CONTRIBUTING.md)**
+
 ## Features
 
 - 🕌 **Mosque Directory**: Searchable directory with GPS coordinates and detailed information
@@ -65,77 +87,27 @@ In development, Vite proxies `/api` and `/api/uploads` to the API so the UI uses
 ## Prerequisites
 
 - **Node.js** 20+ (22 LTS recommended)
-- **pnpm** 10+ ([install](https://pnpm.io/installation))
-- **PostgreSQL** 16+ (local or remote)
+- **pnpm** 10+ (`corepack enable` on recent Node)
+- **Docker** (recommended) or PostgreSQL 16+
 - **Git**
 
-## Local development
+## Local development (manual)
 
-### 1. Clone and install
+If you prefer not to use `pnpm setup:docker`:
 
-```bash
-git clone https://github.com/muazhazali/lepakmasjid.git
-cd lepakmasjid
-pnpm install
-cd server && pnpm install && cd ..
-```
+1. Start Postgres (or `pnpm db:up` with Docker).
+2. `pnpm setup` — creates env files, installs deps, migrates, seeds.
+3. `pnpm dev:all`
 
-### 2. PostgreSQL
+Docker Postgres credentials (default in `docker-compose.yml` / `server/.env.example`):
 
-Create a database and user, for example:
+`postgresql://lepakmasjid:lepakmasjid_dev@127.0.0.1:5432/lepakmasjid`
 
-```sql
-CREATE USER lepakmasjid_app WITH PASSWORD 'your-secure-password';
-CREATE DATABASE lepakmasjid OWNER lepakmasjid_app;
-```
-
-### 3. API (`server/`)
+### Production build
 
 ```bash
-cd server
-cp .env.example .env
-# Edit .env: DATABASE_URL, JWT_SECRET, PORT=3000, UPLOAD_DIR, PUBLIC_URL
-pnpm migrate
-pnpm seed
-pnpm dev
-```
-
-Default seed admin: **`admin@lepakmasjid.local`** / **`adminadmin`** (change in production).
-
-API health: `http://127.0.0.1:3000/health`
-
-### 4. Frontend (repo root)
-
-```bash
-cp .env.example .env.local
-```
-
-```env
-VITE_API_URL=/api
-VITE_APP_URL=http://localhost:8080
-```
-
-```bash
-pnpm dev
-```
-
-Open **http://localhost:8080** (or your LAN IP on `:8080`).
-
-### 5. Import data from PocketBase (optional)
-
-```bash
-cd server
-pnpm pb:export:public    # mosques, amenities, images from pb.muaz.app
-pnpm pb:import:public    # into Postgres
-```
-
-Full export (users, submissions, audit) requires PocketBase superuser env vars — see `server/.env.example` and [docs/MIGRATION_POSTGRES.md](./docs/MIGRATION_POSTGRES.md).
-
-### 6. Production build
-
-```bash
-pnpm build          # output in dist/
-pnpm preview        # local preview of static build
+pnpm build
+pnpm preview
 ```
 
 Deploy `dist/` behind a reverse proxy that forwards `/api` to the Node API.
@@ -144,138 +116,56 @@ Deploy `dist/` behind a reverse proxy that forwards `/api` to the Node API.
 
 ```
 lepakmasjid/
+├── docker-compose.yml      # dev Postgres only
 ├── server/                 # Express API + PostgreSQL
-│   ├── migrations/         # SQL schema
-│   ├── scripts/            # migrate, seed, pb:export/import
-│   ├── src/routes/         # REST handlers
-│   └── uploads/            # mosque images (gitignored)
 ├── src/                    # React app
-│   ├── components/
-│   ├── hooks/
-│   ├── lib/api/            # REST client wrappers
-│   ├── lib/api-client.ts   # fetch + JWT
-│   ├── pages/
-│   └── stores/
-├── scripts/                # Legacy PocketBase setup scripts (optional)
-├── docs/MIGRATION_POSTGRES.md
-├── DATABASE_SCHEMA.md      # Domain model (originally PB-oriented)
-├── vite.config.ts          # /api proxy to :3000
+├── scripts/setup-local.mjs # pnpm setup
+├── docs/LOCAL_DEV.md
 └── package.json
 ```
 
 ## Database schema
 
-Tables: `users`, `mosques`, `amenities`, `mosque_amenities`, `activities`, `submissions`, `audit_logs`. SQL source: `server/migrations/001_schema.sql`.
+Tables: `users`, `mosques`, `amenities`, `mosque_amenities`, `activities`, `submissions`, `audit_logs`. SQL: `server/migrations/001_schema.sql`.
 
-Field-level documentation and relationships: **[DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md)** (conceptual; some PB-specific wording may still apply).
-
-API details: **[server/README.md](./server/README.md)**
+See **[DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md)** and **[server/README.md](./server/README.md)**.
 
 ## Environment variables
 
-### Frontend (`.env.local`)
+| Frontend (`.env.local`) | API (`server/.env`) |
+|-------------------------|---------------------|
+| `VITE_API_URL=/api` | `DATABASE_URL` |
+| `VITE_APP_URL` | `JWT_SECRET`, `PORT`, `UPLOAD_DIR` |
 
-| Variable        | Description              | Example                    |
-| --------------- | ------------------------ | -------------------------- |
-| `VITE_API_URL`  | API base path            | `/api`                     |
-| `VITE_APP_URL`  | App URL (OAuth redirects)| `http://localhost:8080`    |
-
-### API (`server/.env`)
-
-| Variable         | Description                    |
-| ---------------- | ------------------------------ |
-| `DATABASE_URL`   | PostgreSQL connection string   |
-| `JWT_SECRET`     | Token signing secret           |
-| `PORT`           | API port (default `3000`)      |
-| `PUBLIC_URL`     | Public API base (image URLs)   |
-| `UPLOAD_DIR`     | Directory for uploaded files   |
-
-Optional for PocketBase import: `POCKETBASE_URL`, `POCKETBASE_ADMIN_EMAIL`, `POCKETBASE_ADMIN_PASSWORD`.
+Copy from `.env.example` files; `pnpm setup` creates them if missing.
 
 ## Scripts
 
-### Frontend (root)
+| Command | What it does |
+|---------|----------------|
+| `pnpm setup:docker` | Docker Postgres + first-time setup |
+| `pnpm setup:import` | Setup + import public PB mosque data |
+| `pnpm dev:all` | API + Vite together |
+| `pnpm dev:api` / `pnpm dev:web` | One process only |
+| `pnpm db:up` / `pnpm db:down` | Postgres container |
+| `pnpm build` | Production frontend |
+| `pnpm audit:deps` | Security audit |
 
-| Script              | Description                          |
-| ------------------- | ------------------------------------ |
-| `pnpm dev`          | Vite dev server (:8080)              |
-| `pnpm build`        | Production build → `dist/`           |
-| `pnpm preview`      | Preview production build             |
-| `pnpm lint`         | ESLint                               |
-| `pnpm format`       | Prettier                             |
-| `pnpm audit:deps`   | `pnpm audit` in root and `server/`   |
-
-### API (`server/`)
-
-| Script                 | Description                    |
-| ---------------------- | ------------------------------ |
-| `pnpm dev`             | API with hot reload            |
-| `pnpm migrate`         | Apply SQL migrations           |
-| `pnpm seed`            | Seed admin + amenities         |
-| `pnpm pb:export:public`| Export public PB collections   |
-| `pnpm pb:import:public`| Import into Postgres           |
-
-### Legacy PocketBase scripts (root `scripts/`)
-
-Still present for the old hosted PocketBase workflow (`pnpm test:connection`, `setup:collections`, etc.). **Not required** for the PostgreSQL + Express stack.
+Legacy PocketBase scripts under `scripts/` are optional and not needed for the Postgres stack.
 
 ## Roadmap / known gaps
 
 - Google OAuth on the API
 - Full admin CRUD (users, mosque edit/delete) parity
 - Multipart image upload on submission create (API)
-- systemd / production hardening guides
 
 ## Contributing
 
-We welcome contributions! Here's how you can help:
-
-1. **Fork the repository**
-
-   ```bash
-   git clone <YOUR_FORK_URL>
-   cd lepakmasjid
-   ```
-
-2. **Create a feature branch**
-
-   ```bash
-   git checkout -b feature/amazing-feature
-   ```
-
-3. **Make your changes**
-   - Follow the existing code style
-   - Update documentation as needed
-   - Run API + frontend locally before opening a PR
-
-4. **Commit and push**
-
-   ```bash
-   git commit -m 'Add some amazing feature'
-   git push origin feature/amazing-feature
-   ```
-
-5. **Open a Pull Request** with a clear description and linked issues.
-
-### Code quality
-
-Before committing:
-
-```bash
-pnpm format
-pnpm lint
-pnpm audit:deps
-cd server && pnpm dev   # smoke-test API if you touched server/
-pnpm build              # if you touched frontend
-```
-
-**Guidelines:** shadcn-ui components, Zustand + React Query, bilingual strings, accessibility (ARIA, keyboard), TypeScript strictness where applicable.
+See **[CONTRIBUTING.md](./CONTRIBUTING.md)**. Before a PR: `pnpm format`, `pnpm lint`, `pnpm audit:deps`, `pnpm build`.
 
 ## License
 
-This project is licensed under the **AGPL v3** (GNU Affero General Public License v3.0).
-
-See the [LICENSE](./LICENSE) file for details.
+**AGPL v3** — see [LICENSE](./LICENSE).
 
 ## Cool Projects
 
@@ -287,10 +177,8 @@ See the [LICENSE](./LICENSE) file for details.
 
 ## Support
 
-For issues, questions, or feature requests:
-
 - **Email**: [hello@lepakmasjid.app](mailto:hello@lepakmasjid.app)
-- **GitHub Issues**: [muazhazali/lepakmasjid](https://github.com/muazhazali/lepakmasjid/issues)
+- **Issues**: [github.com/muazhazali/lepakmasjid](https://github.com/muazhazali/lepakmasjid/issues)
 
 ---
 

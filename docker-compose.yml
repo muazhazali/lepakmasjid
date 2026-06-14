@@ -1,0 +1,22 @@
+# Local PostgreSQL for development (no production use)
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: lepakmasjid-postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: lepakmasjid
+      POSTGRES_PASSWORD: lepakmasjid_dev
+      POSTGRES_DB: lepakmasjid
+    volumes:
+      - lepakmasjid_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lepakmasjid -d lepakmasjid"]
+      interval: 2s
+      timeout: 5s
+      retries: 15
+
+volumes:
+  lepakmasjid_pg_data:

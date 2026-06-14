@@ -1,8 +1,10 @@
 # LepakMasjid API (PostgreSQL)
 
-Express REST API for [LepakMasjid](https://github.com/muazhazali/lepakmasjid). See the root [README](../README.md) for full-stack setup.
+Express REST API for [LepakMasjid](https://github.com/muazhazali/lepakmasjid).
 
-## Quick start
+**Easiest full stack:** from repo root, `pnpm setup:docker` then `pnpm dev:all` — [docs/LOCAL_DEV.md](../docs/LOCAL_DEV.md).
+
+## Quick start (API only)
 
 ```bash
 cp .env.example .env   # DATABASE_URL, JWT_SECRET
