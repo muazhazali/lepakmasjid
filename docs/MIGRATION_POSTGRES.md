@@ -41,3 +41,11 @@ pnpm pb:import:public    # into Postgres (keeps local admin user)
 4. Frontend HTTP client + env
 5. Replace PocketBase SDK usage in app
 6. Vite dev proxy + docs
+
+## Dependency audit
+
+```bash
+pnpm audit:deps
+```
+
+Runs audit in root and `server/`. Use `pnpm.overrides` in root `package.json` for transitive fixes.

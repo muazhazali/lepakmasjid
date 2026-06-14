@@ -22,7 +22,8 @@
     "fix:audit-logs": "node scripts/fix-audit-logs-permissions.js",
     "seed:data": "node scripts/seed-data.js",
     "add:image-field": "node scripts/add-image-field-to-submissions.js",
-    "deploy": "wrangler deploy --assets=./dist"
+    "deploy": "wrangler deploy --assets=./dist",
+    "audit:deps": "pnpm audit && pnpm --dir server audit"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
