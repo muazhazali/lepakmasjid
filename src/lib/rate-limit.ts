@@ -2,7 +2,7 @@
  * Client-side rate limiting utility
  *
  * NOTE: This is defense-in-depth only. Client-side rate limiting can be bypassed.
- * Server-side rate limiting MUST be implemented on the API or via reverse proxy (Cloudflare, nginx).
+ * Server-side rate limiting MUST be implemented at PocketBase level or via reverse proxy (Cloudflare, nginx).
  */
 
 interface RateLimitRecord {

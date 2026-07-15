@@ -27,7 +27,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { getImageUrl } from "@/lib/images";
+import { getImageUrl } from "@/lib/pocketbase-images";
 import { mosqueAmenitiesApi } from "@/lib/api";
 import type { Submission, Amenity, Activity } from "@/types";
 

@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
+import { usePocketBase } from "@/hooks/use-pocketbase";
 import ScrollToTop from "@/components/ScrollToTop";
 import Index from "./pages/Index";
 import Explore from "./pages/Explore";
@@ -33,6 +34,8 @@ const queryClient = new QueryClient({
 });
 
 const App = () => {
+  // Initialize PocketBase
+  usePocketBase();
 
   return (
     <HelmetProvider>

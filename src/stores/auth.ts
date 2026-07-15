@@ -1,7 +1,6 @@
 import { create } from "zustand";
-import { getCurrentUser, isAdmin, logout as clearAuthSession } from "@/lib/auth";
+import { pb, getCurrentUser, isAdmin } from "@/lib/pocketbase";
 import type { User } from "@/types";
-import { apiFetch, setStoredAuth } from "@/lib/api-client";
 import {
   checkRateLimit,
   resetRateLimit,
@@ -33,6 +32,7 @@ interface AuthState {
 }
 
 export const useAuthStore = create<AuthState>((set) => {
+  // Initialize auth state
   const checkAuth = () => {
     const user = getCurrentUser() as User | null;
     set({
@@ -43,7 +43,13 @@ export const useAuthStore = create<AuthState>((set) => {
     });
   };
 
+  // Check auth on store creation
   checkAuth();
+
+  // Listen to auth changes
+  pb.authStore.onChange(() => {
+    checkAuth();
+  });
 
   return {
     user: getCurrentUser() as User | null,
@@ -54,9 +60,10 @@ export const useAuthStore = create<AuthState>((set) => {
     oauthMessage: null,
 
     login: async (email: string, password: string) => {
+      // Rate limiting: 5 attempts per 15 minutes per email
       const rateLimitKey = `login:${email.toLowerCase()}`;
       const maxAttempts = 5;
-      const windowMs = 15 * 60 * 1000;
+      const windowMs = 15 * 60 * 1000; // 15 minutes
 
       if (!checkRateLimit(rateLimitKey, maxAttempts, windowMs)) {
         const remainingTime = getResetTime(rateLimitKey);
@@ -66,14 +73,8 @@ export const useAuthStore = create<AuthState>((set) => {
         );
       }
 
-      const res = await apiFetch<{ token: string; record: User }>(
-        "/auth/login",
-        {
-          method: "POST",
-          body: JSON.stringify({ email, password }),
-        }
-      );
-      setStoredAuth(res.token, res.record as unknown as Record<string, unknown>);
+      await pb.collection("users").authWithPassword(email, password);
+      // Reset rate limit on successful login
       resetRateLimit(rateLimitKey);
       checkAuth();
     },
@@ -84,9 +85,10 @@ export const useAuthStore = create<AuthState>((set) => {
       passwordConfirm: string,
       name?: string
     ) => {
+      // Rate limiting: 3 registrations per hour per IP (using email as proxy)
       const rateLimitKey = `register:${email.toLowerCase()}`;
       const maxAttempts = 3;
-      const windowMs = 60 * 60 * 1000;
+      const windowMs = 60 * 60 * 1000; // 1 hour
 
       if (!checkRateLimit(rateLimitKey, maxAttempts, windowMs)) {
         const remainingTime = getResetTime(rateLimitKey);
@@ -96,15 +98,19 @@ export const useAuthStore = create<AuthState>((set) => {
         );
       }
 
-      const res = await apiFetch<{ token: string; record: User }>(
-        "/auth/register",
-        {
-          method: "POST",
-          body: JSON.stringify({ email, password, passwordConfirm, name }),
-        }
-      );
-      setStoredAuth(res.token, res.record as unknown as Record<string, unknown>);
+      // Create user
+      await pb.collection("users").create({
+        email,
+        password,
+        passwordConfirm,
+        name,
+      });
+
+      // Reset rate limit on successful registration
       resetRateLimit(rateLimitKey);
+
+      // Auto-login after registration
+      await pb.collection("users").authWithPassword(email, password);
       checkAuth();
     },
 
@@ -113,12 +119,44 @@ export const useAuthStore = create<AuthState>((set) => {
         oauthStatus: "loading",
         oauthMessage: "Signing you in with Google...",
       });
-      set({
-        oauthStatus: "error",
-        oauthMessage:
-          "Google sign-in is not configured for the PostgreSQL API yet. Use email/password.",
-      });
-      throw new Error("Google OAuth not configured");
+      try {
+        // Use PocketBase's built-in OAuth2 method which handles everything automatically
+        // This opens a popup window, handles the OAuth flow, and returns auth data via realtime
+        // Make sure your click handler is NOT async/await if popups are blocked on Safari
+        const authData = await pb.collection("users").authWithOAuth2({
+          provider: "google",
+        });
+
+        if (authData) {
+          set({
+            oauthStatus: "success",
+            oauthMessage: "Successfully signed in with Google!",
+          });
+          checkAuth();
+          // Clear success message after 3 seconds
+          setTimeout(() => {
+            set({ oauthStatus: "idle", oauthMessage: null });
+          }, 3000);
+        }
+      } catch (error: unknown) {
+        let errorMessage = "Failed to sign in with Google. Please try again.";
+
+        // If popup is blocked or user cancels, handle gracefully
+        if (error instanceof Error) {
+          if (
+            error.message?.includes("popup") ||
+            error.message?.includes("blocked")
+          ) {
+            errorMessage =
+              "Popup blocked. Please allow popups for this site and try again.";
+          } else {
+            errorMessage = error.message;
+          }
+        }
+
+        set({ oauthStatus: "error", oauthMessage: errorMessage });
+        throw error;
+      }
     },
 
     clearOAuthStatus: () => {
@@ -130,7 +168,7 @@ export const useAuthStore = create<AuthState>((set) => {
     },
 
     logout: () => {
-      clearAuthSession();
+      pb.authStore.clear();
       checkAuth();
     },
 
