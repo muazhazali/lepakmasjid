@@ -2,131 +2,87 @@
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL_v3-blue.svg)](./LICENSE)
 
-Community-maintained, searchable directory of mosques in Malaysia — facilities, activities, and events. Built for mobile use and accessible browsing (large type, bilingual UI).
+Community-maintained, searchable directory of mosques in Malaysia — facilities,
+activities, and events. Built for mobile use and accessible browsing with a
+bilingual English/Bahasa Melayu interface.
 
-**Live site:** [https://lepakmasjid.app](https://lepakmasjid.app)  
-**Source:** [github.com/muazhazali/lepakmasjid](https://github.com/muazhazali/lepakmasjid)
+**Live site:** [https://lepakmasjid.app](https://lepakmasjid.app)
 
----
+## Contribute locally
 
-## Contribute in 5 minutes
-
-**Requirements:** Node.js **20+**, **pnpm 10+**, and **Docker** (recommended) or PostgreSQL **16+**.
+Requirements: Node.js 20+, pnpm 10+, and access to a development PocketBase
+instance.
 
 ```bash
 git clone https://github.com/muazhazali/lepakmasjid.git
 cd lepakmasjid
-pnpm setup:docker    # Postgres, .env, migrate, seed
-pnpm dev:all         # API + Vite together
+cp .env.example .env.local
+pnpm install
+pnpm dev
 ```
 
-Open **http://localhost:8080**
-
-| Role | Dev login (seed only) |
-|------|------------------------|
-| Admin | `admin@lepakmasjid.local` / `adminadmin` |
-
-Change the admin password after first login in any real deployment.
-
-**Before a pull request:** see **[CONTRIBUTING.md](./CONTRIBUTING.md)** — format, lint, build, and API smoke checks.
-
-**Good first issues:** [GitHub Issues](https://github.com/muazhazali/lepakmasjid/issues) — UI copy (EN + BM), accessibility, mosque data, and API fixes are always welcome.
-
----
-
-## What’s in the repo
-
-| Path | Purpose |
-|------|---------|
-| `src/` | React SPA (Vite, TypeScript, shadcn-ui, Tailwind) |
-| `server/` | Express 5 API, JWT auth, migrations, uploads |
-| `server/migrations/` | PostgreSQL schema (run via `pnpm --dir server migrate`) |
-| `scripts/setup-local.mjs` | First-time local env + install helper |
-| `deploy/` | Example systemd units (Node or Docker Compose) |
-| `PRODUCTION.md` | Self-hosted production + Cloudflare Tunnel |
-
-**Not in git (keep local):** `.env`, `.env.prod`, `server/.env` — copy from `*.example` files.
-
----
+Open http://localhost:8080. Configure `VITE_POCKETBASE_URL` in `.env.local`.
+See [POCKETBASE.md](./POCKETBASE.md) for the expected collections and access
+rules.
 
 ## Architecture
 
-**Development** — two processes, one browser origin:
-
 ```text
-Browser :8080  →  Vite dev server  →  proxies /api/*  →  Express :3000  →  PostgreSQL
+Browser :8080  →  Vite development server  →  PocketBase
+Browser         →  Static production build →  PocketBase
 ```
 
-**Production** — single Node process on **8080** (static `dist/` + `/api`):
+Vite also proxies selected third-party requests for geocoding and the Sedekah
+integration during development. No PostgreSQL database or application server
+is required by this repository.
 
-```text
-Browser  →  Express production server (:8080)  →  PostgreSQL
-              ├── /*     SPA (index.html fallback)
-              └── /api/* JSON API + uploads
-```
+## Repository structure
 
-Self-hosting: **[PRODUCTION.md](./PRODUCTION.md)** (Docker Compose or Node + optional Cloudflare Tunnel to `http://127.0.0.1:8080`).
-
----
-
-## Tech stack
-
-| Layer | Technologies |
-|-------|----------------|
-| Frontend | React 18, TypeScript, Vite, shadcn-ui, Tailwind, TanStack Query, Zustand, Leaflet / OSM |
-| API | Node.js, Express 5, JWT, Zod, Multer (uploads) |
-| Database | PostgreSQL 16 |
-
----
+| Path                    | Purpose                                                 |
+| ----------------------- | ------------------------------------------------------- |
+| `src/`                  | React SPA, routes, components, PocketBase data services |
+| `src/lib/api/`          | PocketBase collection accessors                         |
+| `src/lib/pocketbase.ts` | PocketBase client and auth state                        |
+| `POCKETBASE.md`         | Backend collections and contributor setup               |
+| `wrangler.toml`         | Static deployment configuration                         |
 
 ## Common commands
 
-| Command | Description |
-|---------|-------------|
-| `pnpm setup:docker` | Start Postgres + full local setup |
-| `pnpm setup` | Local setup without Docker (you provide Postgres) |
-| `pnpm dev:all` | API + frontend (contributor default) |
-| `pnpm dev:api` / `pnpm dev:web` | API or frontend only |
-| `pnpm db:up` / `pnpm db:down` | Postgres container |
-| `pnpm build` | Production frontend build |
-| `pnpm start:prod` | Run production server (after `pnpm build` + `pnpm --dir server build`) |
-| `pnpm format` / `pnpm lint` | Code style and ESLint |
-| `pnpm audit:deps` | Dependency security audit |
+| Command             | Description                           |
+| ------------------- | ------------------------------------- |
+| `pnpm dev`          | Start the Vite development server     |
+| `pnpm build`        | Create the production frontend build  |
+| `pnpm preview`      | Preview the production build locally  |
+| `pnpm format:check` | Check formatting                      |
+| `pnpm lint`         | Run ESLint                            |
+| `pnpm audit:deps`   | Audit dependencies                    |
+| `pnpm deploy`       | Deploy the static build with Wrangler |
 
-Default Docker database URL:
+## Pull requests
 
-`postgresql://lepakmasjid:lepakmasjid_dev@127.0.0.1:5432/lepakmasjid`
+Before opening a PR, run:
 
-API health (dev or prod): `http://localhost:8080/api/health`
+```bash
+pnpm format:check
+pnpm lint
+pnpm audit:deps
+pnpm build
+```
 
----
+Please keep user-facing copy available in both English and Bahasa Melayu and
+preserve keyboard accessibility, labels, contrast, and mobile usability.
 
 ## Features
 
 - Mosque directory with map, filters, and state search
-- Community submissions and admin moderation + audit log
-- Amenities catalog, activities, trip planner, Sedekah QR integration
-- Bilingual (EN / BM), dark mode, font size toggle, skip links
-- Email/password auth (JWT); Google OAuth not wired on API yet
+- Community submissions and admin moderation
+- Amenities, activities, trip planner, and Sedekah QR integration
+- PocketBase authentication and image storage
+- Bilingual UI, dark mode, font-size controls, and accessible navigation
 
-Public analytics: [Umami dashboard](https://umami.muaz.app/share/vH9QwmwSuIv2mDiu)
+## Community
 
----
+- Issues: [GitHub Issues](https://github.com/muazhazali/lepakmasjid/issues)
+- Email: [hello@lepakmasjid.app](mailto:hello@lepakmasjid.app)
 
-## Documentation
-
-- [CONTRIBUTING.md](./CONTRIBUTING.md) — how to open a PR
-- [PRODUCTION.md](./PRODUCTION.md) — deploy your own instance
-- [DATABASE_SCHEMA.md](./DATABASE_SCHEMA.md) — PostgreSQL tables
-- [server/README.md](./server/README.md) — API-focused notes
-
----
-
-## License & community
-
-**AGPL v3** — see [LICENSE](./LICENSE). Network use of modified versions must share source under the same license.
-
-- **Email:** [hello@lepakmasjid.app](mailto:hello@lepakmasjid.app)
-- **Issues & discussions:** [GitHub](https://github.com/muazhazali/lepakmasjid/issues)
-
-Made for the Malaysian Muslim community — contributions from everyone who uses or cares for masjid spaces are encouraged.
+License: AGPL v3 — see [LICENSE](./LICENSE).

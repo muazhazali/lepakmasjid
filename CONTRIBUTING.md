@@ -5,27 +5,29 @@ Thanks for helping improve the mosque directory for Malaysia.
 ## Get running locally
 
 ```bash
-pnpm setup:docker
-pnpm dev:all
+pnpm install
+cp .env.example .env.local
+pnpm dev
 ```
 
+The frontend uses PocketBase directly. Set `VITE_POCKETBASE_URL` to a
+development PocketBase instance before starting the app. See
+[POCKETBASE.md](./POCKETBASE.md) for the required collections and permissions.
 
 ## Before you open a PR
 
 ```bash
-pnpm format
+pnpm format:check
 pnpm lint
 pnpm audit:deps
 pnpm build
 ```
 
-If you changed the API, smoke-test with `pnpm dev:api` and `http://localhost:8080/api/health`.
-
 ## Scope
 
 - **UI copy**: English and Bahasa Melayu where user-facing
 - **Accessibility**: keyboard navigation, labels, contrast
-- **Stack**: React + Express API (`server/`) + PostgreSQL
+- **Stack**: React + Vite + PocketBase
 
 ## Questions
 

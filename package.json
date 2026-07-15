@@ -12,18 +12,8 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,scss,md}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,scss,md}\"",
     "preview": "vite preview",
-    "test:connection": "node scripts/test-connection.js",
-    "test:schema": "node scripts/verify-schema.js",
-    "test:submission": "node scripts/test-submission.js",
-    "setup:collections": "node scripts/create-collections.js",
-    "setup:role-field": "node scripts/add-role-field.js",
-    "setup:admin": "node scripts/set-admin-role.js",
-    "fix:permissions": "node scripts/fix-permissions.js",
-    "fix:audit-logs": "node scripts/fix-audit-logs-permissions.js",
-    "seed:data": "node scripts/seed-data.js",
-    "add:image-field": "node scripts/add-image-field-to-submissions.js",
-    "deploy": "wrangler deploy --assets=./dist",
-    "start:prod": "pnpm --dir server start:prod"
+    "audit:deps": "pnpm audit --audit-level high",
+    "deploy": "wrangler deploy --assets=./dist"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -63,7 +53,6 @@
     "cmdk": "^1.1.1",
     "date-fns": "^3.6.0",
     "embla-carousel-react": "^8.6.0",
-    "express": "^5.2.1",
     "input-otp": "^1.4.2",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.462.0",
