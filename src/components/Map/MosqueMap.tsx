@@ -34,7 +34,13 @@ interface MosqueMapProps {
 }
 
 // Component to render mosque popup content
-function MosquePopupContent({ mosque, userLocation }: { mosque: Mosque; userLocation?: [number, number] | null }) {
+function MosquePopupContent({
+  mosque,
+  userLocation,
+}: {
+  mosque: Mosque;
+  userLocation?: [number, number] | null;
+}) {
   const navigate = useNavigate();
   const { language } = useLanguageStore();
 
@@ -43,7 +49,12 @@ function MosquePopupContent({ mosque, userLocation }: { mosque: Mosque; userLoca
 
   // Calculate distance if user location is available
   const distance = userLocation
-    ? calculateDistance(userLocation[0], userLocation[1], mosque.lat, mosque.lng)
+    ? calculateDistance(
+        userLocation[0],
+        userLocation[1],
+        mosque.lat,
+        mosque.lng
+      )
     : null;
 
   // Get icon component dynamically (same logic as MosqueCard)
@@ -63,6 +74,9 @@ function MosquePopupContent({ mosque, userLocation }: { mosque: Mosque; userLoca
       utensils: "UtensilsCrossed",
       "graduation-cap": "GraduationCap",
       graduationcap: "GraduationCap",
+      dumbbell: "Dumbbell",
+      baby: "Baby",
+      "map-pin": "MapPin",
     };
 
     const mappedName = iconMap[normalized];
@@ -106,7 +120,9 @@ function MosquePopupContent({ mosque, userLocation }: { mosque: Mosque; userLoca
           >
             <Navigation className="h-3 w-3" />
             <span className="text-xs">
-              {distance < 1 ? `${(distance * 1000).toFixed(0)}m` : `${distance.toFixed(1)}km`}
+              {distance < 1
+                ? `${(distance * 1000).toFixed(0)}m`
+                : `${distance.toFixed(1)}km`}
             </span>
           </Badge>
         )}

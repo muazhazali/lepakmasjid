@@ -10,9 +10,15 @@ interface OpenMapsButtonProps {
   lat: number;
   lng: number;
   className?: string;
+  label?: string;
 }
 
-const OpenMapsButton: React.FC<OpenMapsButtonProps> = ({ lat, lng, className }) => {
+const OpenMapsButton: React.FC<OpenMapsButtonProps> = ({
+  lat,
+  lng,
+  className,
+  label = "Get Directions",
+}) => {
   const openMaps = () => {
     const url = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
     window.open(url, "_blank"); // opens in a new tab
@@ -26,7 +32,7 @@ const OpenMapsButton: React.FC<OpenMapsButtonProps> = ({ lat, lng, className }) 
       className={cn("w-full gap-2", className)}
     >
       <MapPinned className="h-5 w-5" />
-      Get Directions
+      {label}
     </Button>
   );
 };

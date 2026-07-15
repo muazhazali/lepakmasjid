@@ -77,16 +77,18 @@ const FilterSidebar = ({
   };
 
   const hasActiveFilters =
-    (selectedState && selectedState !== "all") || selectedAmenities.length > 0 || nearMeEnabled;
+    (selectedState && selectedState !== "all") ||
+    selectedAmenities.length > 0 ||
+    nearMeEnabled;
 
   // Filter amenities based on search query
   const filteredAmenities = amenities.filter((amenity) => {
     if (!amenitySearchQuery.trim()) return true;
-    
+
     const query = amenitySearchQuery.toLowerCase();
     const labelEn = amenity.label_en.toLowerCase();
     const labelBm = amenity.label_bm.toLowerCase();
-    
+
     return labelEn.includes(query) || labelBm.includes(query);
   });
 
@@ -111,6 +113,9 @@ const FilterSidebar = ({
       utensils: "UtensilsCrossed",
       "graduation-cap": "GraduationCap",
       graduationcap: "GraduationCap",
+      dumbbell: "Dumbbell",
+      baby: "Baby",
+      "map-pin": "MapPin",
     };
 
     // Get the mapped icon name
@@ -167,7 +172,9 @@ const FilterSidebar = ({
           {hasActiveFilters && (
             <div className="flex items-center justify-between">
               <span className="text-sm text-muted-foreground">
-                {selectedAmenities.length + (selectedState ? 1 : 0) + (nearMeEnabled ? 1 : 0)}{" "}
+                {selectedAmenities.length +
+                  (selectedState ? 1 : 0) +
+                  (nearMeEnabled ? 1 : 0)}{" "}
                 {t("common.filter")}
               </span>
               <Button
@@ -241,7 +248,10 @@ const FilterSidebar = ({
                   {isLoadingLocation && (
                     <Loader2 className="h-4 w-4 text-primary animate-spin" />
                   )}
-                  <Label htmlFor="near-me-toggle" className="text-base font-semibold cursor-pointer">
+                  <Label
+                    htmlFor="near-me-toggle"
+                    className="text-base font-semibold cursor-pointer"
+                  >
                     {t("filter.near_me")}
                   </Label>
                 </div>
@@ -272,20 +282,22 @@ const FilterSidebar = ({
                 <div className="flex items-center justify-between">
                   <Label className="text-sm font-medium text-muted-foreground">
                     {t("filter.distance")}
-              </Label>
-                  <span className={`text-sm font-semibold ${nearMeEnabled && userLocation ? "text-primary" : "text-muted-foreground"}`}>
+                  </Label>
+                  <span
+                    className={`text-sm font-semibold ${nearMeEnabled && userLocation ? "text-primary" : "text-muted-foreground"}`}
+                  >
                     {distance} km
                   </span>
                 </div>
-              <Slider
-                value={[distance]}
-                onValueChange={([value]) => onDistanceChange(value)}
-                min={1}
+                <Slider
+                  value={[distance]}
+                  onValueChange={([value]) => onDistanceChange(value)}
+                  min={1}
                   max={50}
-                step={1}
-                className="w-full"
+                  step={1}
+                  className="w-full"
                   disabled={!nearMeEnabled || !userLocation}
-              />
+                />
                 <div className="flex justify-between text-xs text-muted-foreground">
                   <span>1 km</span>
                   <span>50 km</span>
@@ -299,21 +311,23 @@ const FilterSidebar = ({
             <Label className="text-base font-semibold">
               {t("filter.amenities")}
             </Label>
-            
+
             {/* Search input for amenities */}
             {!amenitiesLoading && !amenitiesError && amenities.length > 0 && (
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="text"
-                  placeholder={t("filter.search_amenities") || "Search amenities..."}
+                  placeholder={
+                    t("filter.search_amenities") || "Search amenities..."
+                  }
                   value={amenitySearchQuery}
                   onChange={(e) => setAmenitySearchQuery(e.target.value)}
                   className="pl-9 h-10"
                 />
               </div>
             )}
-            
+
             {amenitiesLoading ? (
               <div className="text-sm text-muted-foreground">
                 {t("filter.loading_amenities")}

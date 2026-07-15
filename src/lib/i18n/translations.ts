@@ -43,6 +43,7 @@ export const translations = {
     "common.copy": "Copy",
     "common.copied": "Copied!",
     "common.copy_failed": "Failed to copy",
+    "common.share": "Share",
 
     // Mosque
     "mosque.name": "Name",
@@ -56,6 +57,8 @@ export const translations = {
     "mosque.activities": "Activities",
     "mosque.location": "Location",
     "mosque.suggest_edit": "Suggest Edit",
+    "mosque.call": "Call",
+    "mosque.directions": "Get Directions",
     "mosque.no_activities": "No activities scheduled",
     "mosque.latitude": "Latitude",
     "mosque.longitude": "Longitude",
@@ -87,7 +90,8 @@ export const translations = {
 
     // Location Permission Dialog
     "location.dialog_title": "Enable Location Services",
-    "location.dialog_description": "Allow LepakMasjid to access your location for a better experience.",
+    "location.dialog_description":
+      "Allow LepakMasjid to access your location for a better experience.",
     "location.dialog_benefits": "With location enabled, you can:",
     "location.benefit_distance": "See distance to each mosque",
     "location.benefit_nearby": "Find mosques near you",
@@ -150,6 +154,12 @@ export const translations = {
     // Trip Planner
     "trip_planner.title": "Trip Planner",
     "trip_planner.coming_soon": "Coming soon...",
+    "trip_planner.from_placeholder": "Enter starting location...",
+    "trip_planner.to_placeholder": "Enter destination...",
+    "trip_planner.search_route": "Search Route",
+    "trip_planner.calculating": "Calculating...",
+    "trip_planner.calculating_best_route": "Calculating best route...",
+    "trip_planner.reset": "Reset Inputs",
 
     // CTA Section
     "cta.title": "Help Build the Largest Mosque Directory",
@@ -214,6 +224,7 @@ export const translations = {
     "submit.custom_amenity_key": "Key (lowercase, no spaces)",
     "submit.custom_amenity_key_placeholder": "e.g., prayer_mat_rental",
     "submit.custom_amenity_icon": "Icon (optional)",
+    "submit.custom_amenity_icon_placeholder": "Choose an icon",
     "submit.remove_amenity": "Remove",
     "submit.no_amenities_selected": "No amenities selected",
     "submit.activities": "Activities",
@@ -588,6 +599,7 @@ export const translations = {
     "common.copy": "Salin",
     "common.copied": "Disalin!",
     "common.copy_failed": "Gagal menyalin",
+    "common.share": "Kongsi",
 
     // Mosque
     "mosque.name": "Nama",
@@ -601,6 +613,8 @@ export const translations = {
     "mosque.activities": "Aktiviti",
     "mosque.location": "Lokasi",
     "mosque.suggest_edit": "Cadangkan Edit",
+    "mosque.call": "Hubungi",
+    "mosque.directions": "Dapatkan Arah",
     "mosque.no_activities": "Tiada aktiviti dijadualkan",
     "mosque.latitude": "Latitud",
     "mosque.longitude": "Longitud",
@@ -632,7 +646,8 @@ export const translations = {
 
     // Location Permission Dialog
     "location.dialog_title": "Aktifkan Perkhidmatan Lokasi",
-    "location.dialog_description": "Benarkan LepakMasjid mengakses lokasi anda untuk pengalaman yang lebih baik.",
+    "location.dialog_description":
+      "Benarkan LepakMasjid mengakses lokasi anda untuk pengalaman yang lebih baik.",
     "location.dialog_benefits": "Dengan lokasi diaktifkan, anda boleh:",
     "location.benefit_distance": "Lihat jarak ke setiap masjid",
     "location.benefit_nearby": "Cari masjid berdekatan",
@@ -674,6 +689,12 @@ export const translations = {
     // Trip Planner
     "trip_planner.title": "Perancang Perjalanan",
     "trip_planner.coming_soon": "Akan datang...",
+    "trip_planner.from_placeholder": "Masukkan lokasi mula...",
+    "trip_planner.to_placeholder": "Masukkan destinasi...",
+    "trip_planner.search_route": "Cari Laluan",
+    "trip_planner.calculating": "Mengira...",
+    "trip_planner.calculating_best_route": "Mengira laluan terbaik...",
+    "trip_planner.reset": "Set Semula",
 
     // CTA Section
     "cta.title": "Bantu Membina Direktori Masjid Terbesar",
@@ -740,6 +761,7 @@ export const translations = {
     "submit.custom_amenity_key": "Kunci (huruf kecil, tiada ruang)",
     "submit.custom_amenity_key_placeholder": "cth., sewa_sejadah",
     "submit.custom_amenity_icon": "Ikon (pilihan)",
+    "submit.custom_amenity_icon_placeholder": "Pilih ikon",
     "submit.remove_amenity": "Buang",
     "submit.no_amenities_selected": "Tiada kemudahan dipilih",
     "submit.activities": "Aktiviti",

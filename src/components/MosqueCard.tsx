@@ -52,6 +52,9 @@ const MosqueCard = ({
       utensils: "UtensilsCrossed",
       "graduation-cap": "GraduationCap",
       graduationcap: "GraduationCap",
+      dumbbell: "Dumbbell",
+      baby: "Baby",
+      "map-pin": "MapPin",
     };
 
     // Get the mapped icon name
@@ -146,7 +149,11 @@ const MosqueCard = ({
               }`}
             >
               <Navigation className={isListView ? "h-2.5 w-2.5" : "h-3 w-3"} />
-              <span>{mosque.distance < 1 ? `${(mosque.distance * 1000).toFixed(0)}m` : `${mosque.distance.toFixed(1)}km`}</span>
+              <span>
+                {mosque.distance < 1
+                  ? `${(mosque.distance * 1000).toFixed(0)}m`
+                  : `${mosque.distance.toFixed(1)}km`}
+              </span>
             </Badge>
           )}
         </div>

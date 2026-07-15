@@ -1,6 +1,17 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import { MapPin, Edit, ArrowLeft, Calendar, Clock, Phone, Copy, Check, Navigation } from "lucide-react";
+import {
+  MapPin,
+  Edit,
+  ArrowLeft,
+  Calendar,
+  Clock,
+  Phone,
+  Copy,
+  Check,
+  Navigation,
+  Share2,
+} from "lucide-react";
 import { useState } from "react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -33,9 +44,15 @@ const MosqueDetail = () => {
   const { location: userLocation } = useNearMe();
 
   // Calculate distance if user location is available
-  const distance = userLocation && mosque
-    ? calculateDistance(userLocation.lat, userLocation.lng, mosque.lat, mosque.lng)
-    : undefined;
+  const distance =
+    userLocation && mosque
+      ? calculateDistance(
+          userLocation.lat,
+          userLocation.lng,
+          mosque.lat,
+          mosque.lng
+        )
+      : undefined;
 
   const handleCopyContact = async () => {
     if (mosque?.contact) {
@@ -47,6 +64,16 @@ const MosqueDetail = () => {
       } catch (err) {
         toast.error(t("common.copy_failed") || "Failed to copy");
       }
+    }
+  };
+
+  const handleShare = async () => {
+    const shareData = { title: displayName, url: window.location.href };
+    if (navigator.share) {
+      await navigator.share(shareData).catch(() => undefined);
+    } else {
+      await navigator.clipboard.writeText(window.location.href);
+      toast.success(t("common.copied"));
     }
   };
 
@@ -165,7 +192,11 @@ const MosqueDetail = () => {
                         size="sm"
                         className="h-8 w-8 p-0"
                         onClick={handleCopyContact}
-                        title={copied ? t("common.copied") || "Copied!" : t("common.copy") || "Copy"}
+                        title={
+                          copied
+                            ? t("common.copied") || "Copied!"
+                            : t("common.copy") || "Copy"
+                        }
                       >
                         {copied ? (
                           <Check className="h-4 w-4 text-green-600" />
@@ -190,6 +221,27 @@ const MosqueDetail = () => {
                         </span>
                       </Badge>
                     )}
+                  </div>
+
+                  <div className="flex flex-wrap gap-2 mt-5">
+                    <OpenMapsButton
+                      lat={mosque.lat}
+                      lng={mosque.lng}
+                      label={t("mosque.directions")}
+                      className="w-auto"
+                    />
+                    {mosque.contact && (
+                      <Button variant="outline" asChild>
+                        <a href={`tel:${mosque.contact}`}>
+                          <Phone className="mr-2 h-4 w-4" />
+                          {t("mosque.call")}
+                        </a>
+                      </Button>
+                    )}
+                    <Button variant="outline" onClick={handleShare}>
+                      <Share2 className="mr-2 h-4 w-4" />
+                      {t("common.share")}
+                    </Button>
                   </div>
                 </div>
                 {isAuthenticated && (

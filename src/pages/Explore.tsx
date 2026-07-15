@@ -1,14 +1,25 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { Helmet } from "react-helmet-async";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { Filter, Grid, List, MapIcon, Map as MapIcon2, Plus } from "lucide-react";
+import {
+  Filter,
+  Grid,
+  List,
+  MapIcon,
+  Map as MapIcon2,
+  Plus,
+  X,
+} from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import FilterSidebar from "@/components/FilterSidebar";
 import MosqueCard from "@/components/MosqueCard";
 import { MapView } from "@/components/Map/MapView";
 import { useNearMe } from "@/components/NearMe";
-import { LocationPermissionDialog, shouldShowLocationDialog } from "@/components/LocationPermissionDialog";
+import {
+  LocationPermissionDialog,
+  shouldShowLocationDialog,
+} from "@/components/LocationPermissionDialog";
 import { calculateDistance } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -75,7 +86,10 @@ const Explore = () => {
 
   const sortBy: "nearest" | "most_amenities" | "alphabetical" = useMemo(() => {
     const urlSort = searchParams.get("sort");
-    if (urlSort && ["nearest", "most_amenities", "alphabetical"].includes(urlSort)) {
+    if (
+      urlSort &&
+      ["nearest", "most_amenities", "alphabetical"].includes(urlSort)
+    ) {
       return urlSort as "nearest" | "most_amenities" | "alphabetical";
     }
     return "alphabetical";
@@ -92,27 +106,9 @@ const Explore = () => {
     localStorage.setItem(VIEW_MODE_STORAGE_KEY, viewMode);
   }, [viewMode]);
 
-  // Show location permission dialog on mount if needed
-  useEffect(() => {
-    // Don't show dialog if user already has location or dialog was dismissed
-    if (userLocation) {
-      // User already has location, don't show dialog
-      setShowLocationDialog(false);
-      return;
-    }
-
-    if (!isLoadingLocation && shouldShowLocationDialog()) {
-      // Small delay to let the page render and location to be restored from storage
-      const timer = setTimeout(() => {
-        // Double check userLocation hasn't been set during the delay
-        setShowLocationDialog(true);
-      }, 800);
-      return () => clearTimeout(timer);
-    }
-  }, [userLocation, isLoadingLocation]);
-
   const handleLocationAccept = () => {
     requestLocation();
+    updateParams({ nearme: "true", page: null });
   };
 
   const handleLocationDecline = () => {
@@ -124,11 +120,12 @@ const Explore = () => {
     if (contentRef.current) {
       const headerOffset = 80; // Offset to account for any fixed headers
       const elementPosition = contentRef.current.getBoundingClientRect().top;
-      const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
+      const offsetPosition =
+        elementPosition + window.pageYOffset - headerOffset;
 
       window.scrollTo({
         top: offsetPosition,
-        behavior: 'smooth'
+        behavior: "smooth",
       });
     }
   }, [currentPage]);
@@ -228,12 +225,14 @@ const Explore = () => {
   const isLoadingView = needsAllMosques ? isLoadingAll : isLoading;
   const errorView = needsAllMosques ? errorAll : error;
   const totalPages = needsAllMosques ? 1 : paginatedData?.totalPages || 1;
-  const totalItems = needsAllMosques ? filteredMosques.length : paginatedData?.totalItems || mosques.length;
+  const totalItems = needsAllMosques
+    ? filteredMosques.length
+    : paginatedData?.totalItems || mosques.length;
 
   // Helper to update URL params
   const updateParams = (updates: Record<string, string | null>) => {
     const params = new URLSearchParams(searchParams);
-    
+
     Object.entries(updates).forEach(([key, value]) => {
       if (value === null || value === "") {
         params.delete(key);
@@ -254,23 +253,23 @@ const Explore = () => {
   };
 
   const setSelectedAmenities = (amenities: string[]) => {
-    updateParams({ 
+    updateParams({
       amenities: amenities.length > 0 ? amenities.join(",") : null,
-      page: null // Reset page when filtering
+      page: null, // Reset page when filtering
     });
   };
 
   const setSortBy = (sort: "nearest" | "most_amenities" | "alphabetical") => {
-    updateParams({ 
+    updateParams({
       sort: sort !== "alphabetical" ? sort : null,
-      page: null // Reset page when sorting
+      page: null, // Reset page when sorting
     });
   };
 
   const setViewMode = (mode: "grid" | "list" | "map") => {
     updateParams({
       view: mode,
-      page: null // Reset page when changing view
+      page: null, // Reset page when changing view
     });
   };
 
@@ -280,7 +279,11 @@ const Explore = () => {
 
   const setNearMeEnabled = (enabled: boolean) => {
     if (enabled) {
-      // Request location when enabling Near Me
+      // Ask only after the user explicitly enables Nearby.
+      if (!userLocation && shouldShowLocationDialog()) {
+        setShowLocationDialog(true);
+        return;
+      }
       requestLocation();
       updateParams({ nearme: "true", page: null });
     } else {
@@ -303,7 +306,10 @@ const Explore = () => {
   };
 
   const activeFilterCount =
-    (selectedState ? 1 : 0) + selectedAmenities.length + (searchQuery ? 1 : 0) + (nearMeEnabled ? 1 : 0);
+    (selectedState ? 1 : 0) +
+    selectedAmenities.length +
+    (searchQuery ? 1 : 0) +
+    (nearMeEnabled ? 1 : 0);
 
   return (
     <>
@@ -429,6 +435,60 @@ const Explore = () => {
                   </div>
                 </div>
 
+                {activeFilterCount > 0 && (
+                  <div
+                    className="flex flex-wrap items-center gap-2 mb-5"
+                    aria-label={t("common.filter")}
+                  >
+                    <span className="text-sm text-muted-foreground">
+                      {t("common.filter")}:
+                    </span>
+                    {searchQuery && (
+                      <button
+                        onClick={() => setSearchQuery("")}
+                        className="inline-flex items-center gap-1 rounded-full bg-secondary px-3 py-1 text-sm hover:bg-secondary/70"
+                      >
+                        “{searchQuery}”{" "}
+                        <X className="h-3 w-3" aria-hidden="true" />
+                      </button>
+                    )}
+                    {selectedState && (
+                      <button
+                        onClick={() => setSelectedState("")}
+                        className="inline-flex items-center gap-1 rounded-full bg-secondary px-3 py-1 text-sm hover:bg-secondary/70"
+                      >
+                        {selectedState}{" "}
+                        <X className="h-3 w-3" aria-hidden="true" />
+                      </button>
+                    )}
+                    {selectedAmenities.length > 0 && (
+                      <button
+                        onClick={() => setSelectedAmenities([])}
+                        className="inline-flex items-center gap-1 rounded-full bg-secondary px-3 py-1 text-sm hover:bg-secondary/70"
+                      >
+                        {selectedAmenities.length}{" "}
+                        {t("filter.amenities").toLowerCase()}{" "}
+                        <X className="h-3 w-3" aria-hidden="true" />
+                      </button>
+                    )}
+                    {nearMeEnabled && (
+                      <button
+                        onClick={() => setNearMeEnabled(false)}
+                        className="inline-flex items-center gap-1 rounded-full bg-secondary px-3 py-1 text-sm hover:bg-secondary/70"
+                      >
+                        {t("filter.near_me")}{" "}
+                        <X className="h-3 w-3" aria-hidden="true" />
+                      </button>
+                    )}
+                    <button
+                      onClick={clearFilters}
+                      className="text-sm text-primary hover:underline"
+                    >
+                      {t("explore.clear_filters")}
+                    </button>
+                  </div>
+                )}
+
                 {/* Error state */}
                 {errorView && (
                   <Alert variant="destructive" className="mb-6">
@@ -455,11 +515,17 @@ const Explore = () => {
                       <>
                         {t("explore.showing")}{" "}
                         <span className="font-medium text-foreground">
-                          {totalItems > 0 ? (needsAllMosques ? 1 : (currentPage - 1) * PER_PAGE + 1) : 0}
+                          {totalItems > 0
+                            ? needsAllMosques
+                              ? 1
+                              : (currentPage - 1) * PER_PAGE + 1
+                            : 0}
                         </span>
                         {" - "}
                         <span className="font-medium text-foreground">
-                          {needsAllMosques ? totalItems : Math.min(currentPage * PER_PAGE, totalItems)}
+                          {needsAllMosques
+                            ? totalItems
+                            : Math.min(currentPage * PER_PAGE, totalItems)}
                         </span>
                         {" of "}
                         <span className="font-medium text-foreground">

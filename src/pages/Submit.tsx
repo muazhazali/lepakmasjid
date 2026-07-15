@@ -23,7 +23,26 @@ import { SkipLink } from "@/components/SkipLink";
 import { AuthDialog } from "@/components/Auth/AuthDialog";
 import { toast } from "sonner";
 import { validateImageFile } from "@/lib/pocketbase-images";
-import { X, Plus, Search, Loader2 } from "lucide-react";
+import {
+  X,
+  Plus,
+  Search,
+  Loader2,
+  Accessibility,
+  BookOpen,
+  Car,
+  Droplet,
+  GraduationCap,
+  Laptop,
+  MapPin,
+  UtensilsCrossed,
+  Users,
+  Wifi,
+  Wind,
+  Dumbbell,
+  Baby,
+  type LucideIcon,
+} from "lucide-react";
 import {
   MapContainer,
   TileLayer,
@@ -48,6 +67,26 @@ import {
 } from "@/components/ui/select";
 import { MALAYSIAN_STATES } from "@/types";
 
+const customAmenityIcons: Array<{
+  value: string;
+  label: string;
+  Icon: LucideIcon;
+}> = [
+  { value: "wifi", label: "WiFi", Icon: Wifi },
+  { value: "laptop", label: "Workspace", Icon: Laptop },
+  { value: "accessibility", label: "Accessibility", Icon: Accessibility },
+  { value: "book", label: "Books", Icon: BookOpen },
+  { value: "car", label: "Parking", Icon: Car },
+  { value: "droplet", label: "Water", Icon: Droplet },
+  { value: "users", label: "Community", Icon: Users },
+  { value: "wind", label: "Air conditioning", Icon: Wind },
+  { value: "utensils", label: "Food", Icon: UtensilsCrossed },
+  { value: "graduation-cap", label: "Education", Icon: GraduationCap },
+  { value: "dumbbell", label: "Sports", Icon: Dumbbell },
+  { value: "baby", label: "Children", Icon: Baby },
+  { value: "map-pin", label: "Other", Icon: MapPin },
+];
+
 // Fix for default marker icons in React-Leaflet
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 delete (L.Icon.Default.prototype as any)._getIconUrl;
@@ -66,12 +105,9 @@ const createMosqueSchema = (t: (key: string) => string) =>
     name_bm: z.string().optional(),
     address: z.string().min(5, t("form.address_min")),
     contact: z.string().optional(),
-    state: z.enum(
-      MALAYSIAN_STATES as [string, ...string[]],
-      {
-        required_error: t("form.state_required"),
-      }
-    ),
+    state: z.enum(MALAYSIAN_STATES as [string, ...string[]], {
+      required_error: t("form.state_required"),
+    }),
     lat: z.number().min(-90, t("form.lat_range")).max(90, t("form.lat_range")),
     lng: z
       .number()
@@ -133,7 +169,11 @@ interface PhotonSearchResponse {
   features?: PhotonFeature[];
 }
 
-function CoordinatePicker({ onPick }: { onPick: (lat: number, lng: number) => void }) {
+function CoordinatePicker({
+  onPick,
+}: {
+  onPick: (lat: number, lng: number) => void;
+}) {
   useMapEvents({
     click(event) {
       onPick(event.latlng.lat, event.latlng.lng);
@@ -177,9 +217,9 @@ const Submit = () => {
   const [imageError, setImageError] = useState<string | null>(null);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const [locationQuery, setLocationQuery] = useState("");
-  const [locationResults, setLocationResults] = useState<NominatimSearchResult[]>(
-    []
-  );
+  const [locationResults, setLocationResults] = useState<
+    NominatimSearchResult[]
+  >([]);
   const [locationSearchError, setLocationSearchError] = useState<string | null>(
     null
   );
@@ -299,7 +339,9 @@ const Submit = () => {
         return (await response.json()) as NominatimSearchResult[];
       };
 
-      const searchPhotonFallback = async (): Promise<NominatimSearchResult[]> => {
+      const searchPhotonFallback = async (): Promise<
+        NominatimSearchResult[]
+      > => {
         const response = await fetch(
           `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=8&lang=en`
         );
@@ -312,7 +354,9 @@ const Submit = () => {
 
         const mappedResults = (payload.features ?? [])
           .filter((feature) => {
-            const countryCode = (feature.properties.countrycode || "").toLowerCase();
+            const countryCode = (
+              feature.properties.countrycode || ""
+            ).toLowerCase();
             const country = (feature.properties.country || "").toLowerCase();
             return countryCode === "my" || country === "malaysia";
           })
@@ -340,7 +384,8 @@ const Submit = () => {
               .join(", ");
 
             return {
-              place_id: feature.properties.osm_id ?? `photon-${index}-${lat}-${lon}`,
+              place_id:
+                feature.properties.osm_id ?? `photon-${index}-${lat}-${lon}`,
               display_name: displayName || `${lat}, ${lon}`,
               lat: String(lat),
               lon: String(lon),
@@ -889,7 +934,9 @@ const Submit = () => {
                 <Label htmlFor="state">{t("submit.state")} *</Label>
                 <Select
                   value={selectedState || ""}
-                  onValueChange={(value) => setValue("state", value, { shouldValidate: true })}
+                  onValueChange={(value) =>
+                    setValue("state", value, { shouldValidate: true })
+                  }
                 >
                   <SelectTrigger id="state">
                     <SelectValue placeholder={t("submit.state_placeholder")} />
@@ -973,7 +1020,9 @@ const Submit = () => {
                 </div>
 
                 {locationSearchError && (
-                  <p className="text-sm text-destructive">{locationSearchError}</p>
+                  <p className="text-sm text-destructive">
+                    {locationSearchError}
+                  </p>
                 )}
 
                 {locationResults.length > 0 && (
@@ -1253,17 +1302,38 @@ const Submit = () => {
                         <Label htmlFor="custom-icon">
                           {t("submit.custom_amenity_icon")}
                         </Label>
-                        <Input
-                          id="custom-icon"
-                          value={newCustomAmenity.icon || ""}
-                          onChange={(e) =>
+                        <Select
+                          value={newCustomAmenity.icon || "map-pin"}
+                          onValueChange={(value) =>
                             setNewCustomAmenity({
                               ...newCustomAmenity,
-                              icon: e.target.value,
+                              icon: value,
                             })
                           }
-                          placeholder="e.g., circle, wifi, car"
-                        />
+                        >
+                          <SelectTrigger id="custom-icon" className="h-12">
+                            <SelectValue
+                              placeholder={t(
+                                "submit.custom_amenity_icon_placeholder"
+                              )}
+                            />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {customAmenityIcons.map(
+                              ({ value, label, Icon }) => (
+                                <SelectItem key={value} value={value}>
+                                  <span className="flex items-center gap-2">
+                                    <Icon
+                                      className="h-4 w-4 text-primary"
+                                      aria-hidden="true"
+                                    />
+                                    {label}
+                                  </span>
+                                </SelectItem>
+                              )
+                            )}
+                          </SelectContent>
+                        </Select>
                       </div>
                       <div className="space-y-2">
                         <Label htmlFor="custom-details">
