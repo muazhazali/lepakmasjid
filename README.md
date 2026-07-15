@@ -10,7 +10,7 @@ bilingual English/Bahasa Melayu interface.
 
 ## Contribute locally
 
-Requirements: Node.js 20+, pnpm 10+, and access to a development PocketBase
+Requirements: Node.js 24+ (LTS), pnpm 11+, and access to a development PocketBase
 instance.
 
 ```bash
