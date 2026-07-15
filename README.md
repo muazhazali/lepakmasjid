@@ -10,20 +10,27 @@ bilingual English/Bahasa Melayu interface.
 
 ## Contribute locally
 
-Requirements: Node.js 24+ (LTS), pnpm 11+, and access to a development PocketBase
-instance.
+Requirements: Node.js 24+ (LTS), pnpm 11+, and PocketBase. Contributors should
+use a disposable local PocketBase instance; do not use production.
 
 ```bash
 git clone https://github.com/muazhazali/lepakmasjid.git
 cd lepakmasjid
 pnpm install
 pnpm setup
+
+# In a second terminal, start PocketBase on http://127.0.0.1:8090.
+# Create its first superuser when prompted, then add these values to .env.local:
+# POCKETBASE_ADMIN_EMAIL=...
+# POCKETBASE_ADMIN_PASSWORD=...
+pnpm setup:pocketbase
 pnpm dev
 ```
 
-Open http://localhost:8080. Configure `VITE_POCKETBASE_URL` in `.env.local`.
-See [POCKETBASE.md](./POCKETBASE.md) for the expected collections and access
-rules.
+Open http://localhost:8080. `pnpm setup` writes
+`VITE_POCKETBASE_URL=http://127.0.0.1:8090` by default. See
+[POCKETBASE.md](./POCKETBASE.md) for installing and starting PocketBase,
+creating an optional application admin, and the expected collections/rules.
 
 ## Architecture
 
@@ -48,18 +55,18 @@ is required by this repository.
 
 ## Common commands
 
-| Command                 | Description                           |
-| ----------------------- | ------------------------------------- |
-| `pnpm dev`              | Start the Vite development server     |
-| `pnpm build`            | Create the production frontend build  |
-| `pnpm preview`          | Preview the production build locally  |
-| `pnpm setup`            | Create `.env.local` safely            |
-| `pnpm setup:pocketbase` | Create schema and sample data         |
-| `pnpm seed:pocketbase`  | Add three sample mosques              |
-| `pnpm format:check`     | Check formatting                      |
-| `pnpm lint`             | Run ESLint                            |
-| `pnpm audit:deps`       | Audit dependencies                    |
-| `pnpm deploy`           | Deploy the static build with Wrangler |
+| Command                 | Description                            |
+| ----------------------- | -------------------------------------- |
+| `pnpm dev`              | Start the Vite development server      |
+| `pnpm build`            | Create the production frontend build   |
+| `pnpm preview`          | Preview the production build locally   |
+| `pnpm setup`            | Create `.env.local` safely             |
+| `pnpm setup:pocketbase` | Create schema and complete sample data |
+| `pnpm seed:pocketbase`  | Re-seed complete sample data           |
+| `pnpm format:check`     | Check formatting                       |
+| `pnpm lint`             | Run ESLint                             |
+| `pnpm audit:deps`       | Audit dependencies                     |
+| `pnpm deploy`           | Deploy the static build with Wrangler  |
 
 ## Pull requests
 

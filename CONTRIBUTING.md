@@ -4,16 +4,29 @@ Thanks for helping improve the mosque directory for Malaysia.
 
 ## Get running locally
 
-```bash
-pnpm install
-pnpm setup
-pnpm dev
-```
+1. Install Node.js 24+ and pnpm 11+.
+2. Install PocketBase and start a local instance on port `8090`.
+3. Create the PocketBase superuser in its web UI.
+4. Run:
+
+   ```bash
+   pnpm install
+   pnpm setup
+   ```
+
+5. Add the PocketBase superuser credentials to `.env.local` as
+   `POCKETBASE_ADMIN_EMAIL` and `POCKETBASE_ADMIN_PASSWORD`.
+6. Create the schema and sample data:
+
+   ```bash
+   pnpm setup:pocketbase
+   pnpm dev
+   ```
 
 The setup command creates `.env.local` without overwriting an existing file.
-Set `VITE_POCKETBASE_URL` to a development PocketBase instance before starting
-the app. See [POCKETBASE.md](./POCKETBASE.md) for the required collections,
-permissions, and optional sample-data seed command.
+The PocketBase setup command checks connectivity, creates the collections, and
+seeds mosques, amenities, relationships, and activities. See
+[POCKETBASE.md](./POCKETBASE.md) for the complete backend setup.
 
 ## Before you open a PR
 

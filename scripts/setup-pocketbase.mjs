@@ -17,7 +17,26 @@ if (!url || !email || !password) {
 }
 
 const pb = new PocketBase(url);
-await pb.collection("_superusers").authWithPassword(email, password);
+try {
+  await pb.health.check();
+} catch (error) {
+  console.error(
+    `Cannot reach PocketBase at ${url}. Start PocketBase first, then retry.`
+  );
+  console.error(error?.message || error);
+  process.exit(1);
+}
+
+try {
+  await pb.collection("_superusers").authWithPassword(email, password);
+} catch (error) {
+  console.error(
+    "Could not authenticate as a PocketBase superuser. " +
+      "Check POCKETBASE_ADMIN_EMAIL and POCKETBASE_ADMIN_PASSWORD."
+  );
+  console.error(error?.message || error);
+  process.exit(1);
+}
 
 const rules = {
   public: "",
