@@ -13,6 +13,9 @@
     "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,scss,md}\"",
     "preview": "vite preview",
     "audit:deps": "pnpm audit --audit-level high",
+    "setup": "node scripts/setup.mjs",
+    "setup:pocketbase": "node scripts/setup-pocketbase.mjs",
+    "seed:pocketbase": "node scripts/seed-pocketbase.mjs",
     "deploy": "wrangler deploy --assets=./dist"
   },
   "dependencies": {

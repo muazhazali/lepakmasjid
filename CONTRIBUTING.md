@@ -6,13 +6,14 @@ Thanks for helping improve the mosque directory for Malaysia.
 
 ```bash
 pnpm install
-cp .env.example .env.local
+pnpm setup
 pnpm dev
 ```
 
-The frontend uses PocketBase directly. Set `VITE_POCKETBASE_URL` to a
-development PocketBase instance before starting the app. See
-[POCKETBASE.md](./POCKETBASE.md) for the required collections and permissions.
+The setup command creates `.env.local` without overwriting an existing file.
+Set `VITE_POCKETBASE_URL` to a development PocketBase instance before starting
+the app. See [POCKETBASE.md](./POCKETBASE.md) for the required collections,
+permissions, and optional sample-data seed command.
 
 ## Before you open a PR
 

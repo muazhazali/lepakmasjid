@@ -18,6 +18,35 @@ Set `VITE_POCKETBASE_URL` in `.env.local` to the URL of the PocketBase instance.
 Do not point contributor development environments at production unless you are
 an authorized maintainer.
 
+## Provision the development schema and data
+
+For a fresh development PocketBase instance, the setup command creates the
+required collections, permissions, and user fields, then seeds three approved
+mosques. It is safe to run repeatedly: existing collections and mosque names
+are preserved.
+
+```bash
+pnpm setup
+# Edit .env.local and set POCKETBASE_ADMIN_EMAIL and POCKETBASE_ADMIN_PASSWORD
+pnpm setup:pocketbase
+```
+
+The seed is idempotent: it creates three approved Malaysian mosques and skips
+records that already exist with the same name. If the `mosques.created_by`
+relation is required by your collection, also set `POCKETBASE_SEED_CREATED_BY`
+to a valid `users` record ID before running the command. Never commit these
+credentials or a PocketBase data directory.
+
+The command creates:
+
+- `users` custom fields: `role`, `trust_score`
+- `mosques`
+- `amenities`
+- `mosque_amenities`
+- `activities`
+- `submissions`
+- `audit_logs`
+
 ## Required collections
 
 The instance must provide these collections:
