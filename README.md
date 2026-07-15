@@ -16,8 +16,8 @@ instance.
 ```bash
 git clone https://github.com/muazhazali/lepakmasjid.git
 cd lepakmasjid
-cp .env.example .env.local
 pnpm install
+pnpm setup
 pnpm dev
 ```
 
@@ -48,15 +48,18 @@ is required by this repository.
 
 ## Common commands
 
-| Command             | Description                           |
-| ------------------- | ------------------------------------- |
-| `pnpm dev`          | Start the Vite development server     |
-| `pnpm build`        | Create the production frontend build  |
-| `pnpm preview`      | Preview the production build locally  |
-| `pnpm format:check` | Check formatting                      |
-| `pnpm lint`         | Run ESLint                            |
-| `pnpm audit:deps`   | Audit dependencies                    |
-| `pnpm deploy`       | Deploy the static build with Wrangler |
+| Command                 | Description                           |
+| ----------------------- | ------------------------------------- |
+| `pnpm dev`              | Start the Vite development server     |
+| `pnpm build`            | Create the production frontend build  |
+| `pnpm preview`          | Preview the production build locally  |
+| `pnpm setup`            | Create `.env.local` safely            |
+| `pnpm setup:pocketbase` | Create schema and sample data         |
+| `pnpm seed:pocketbase`  | Add three sample mosques              |
+| `pnpm format:check`     | Check formatting                      |
+| `pnpm lint`             | Run ESLint                            |
+| `pnpm audit:deps`       | Audit dependencies                    |
+| `pnpm deploy`           | Deploy the static build with Wrangler |
 
 ## Pull requests
 
