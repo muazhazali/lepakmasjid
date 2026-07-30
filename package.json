@@ -82,7 +82,7 @@
     "@eslint/js": "^9.39.3",
     "@tailwindcss/typography": "^0.5.19",
     "@types/leaflet": "^1.9.21",
-    "@types/node": "^22.19.11",
+    "@types/node": "^26.1.1",
     "@types/react": "^18.3.28",
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react-swc": "^3.11.0",
